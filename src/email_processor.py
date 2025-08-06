@@ -137,5 +137,3 @@ Hiring Team"""
             subject=response_subject,
             body=response_body,
         )
-
-# ruff: noqa: W293, W292

@@ -16,9 +16,8 @@ class EmailProcessor:
         
         for email in emails:
             subject_lower = email.subject.lower()
-            # checking if all three required-keywords are present in the mail subject
-            if ("pseudo" in subject_lower and "internship" in subject_lower and 
-                "interest" in subject_lower):
+            #checking if all three required-keywords are present in the mail subject
+            if all(keyword in subject_lower for keyword in self.required_keywords):
                 filtered_emails.append(email)
         
         return filtered_emails

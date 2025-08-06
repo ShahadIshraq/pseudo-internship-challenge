@@ -1,6 +1,6 @@
 import re
-import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
 from .gmail_client import Email, GmailClientInterface
 
 
@@ -87,7 +87,7 @@ Hiring Team"""
                 name = self.extract_name_from_email(email.body)
                 response_body = self.generate_response(name)
                 response_subject = f"Re: {email.subject}"
-                
+
                 # Submit the send_email task to the executor
                 future = executor.submit(self.gmail_client.send_email, email.sender, response_subject, response_body)
                 future_to_email[future] = email
@@ -100,7 +100,7 @@ Hiring Team"""
                         responses_sent += 1
                 except Exception:
                     pass
-        
+
         # Do not modify this block
         return {
             "total_emails": len(emails),

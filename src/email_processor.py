@@ -1,5 +1,11 @@
 import re
-from .gmail_client import Email, GmailClientInterface, MockGmailClient  # import MockGmailClient
+
+from .gmail_client import (  # import MockGmailClient
+    Email,
+    GmailClientInterface,
+    MockGmailClient,
+)
+
 
 class EmailProcessor:
     def __init__(self, gmail_client: GmailClientInterface):
@@ -74,4 +80,4 @@ class EmailProcessor:
             "responses_sent": responses_sent,
         }
         # end of non-modifiable block
-# This is a new line that ends the file.
+

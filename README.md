@@ -1,41 +1,18 @@
 # Pseudo Internship Challenge
 
-## Overview
+## Changes
 
-This is a coding challenge repository containing:
-- **src/**: Core implementation files
-  - `email_processor.py`: Email processing functionality
-  - `gmail_client.py`: Gmail client mock implementation
-  - `__init__.py`: Package initialization
-- **tests/**: Test suite
-  - `test_email_processor.py`: Email processor tests
-  - `test_data_generator.py`: Test data generation utilities
-  - `__init__.py`: Test package initialization
-
-## Submission Instructions
-
-1. **Fork this repository** to your GitHub account
-2. **Clone your fork** locally
-3. **Implement the required changes** in your fork
-4. **Test your implementation** to ensure all tests pass
-5. **Create a Pull Request** from your fork to the `batch-0` branch of this repository
-
-### Pull Request Requirements
-- Target branch: `batch-0`
-- Include a clear description of your changes
-- Ensure all tests pass before submitting
-- Follow existing code style and conventions
-
-## Getting Started
-
-```bash
-# Clone your fork
-git clone https://github.com/YOUR_USERNAME/pseudo-internship-challenge.git
-cd pseudo-internship-challenge
-
-# Install dependencies (if any)
-pip install -r requirements.txt  # if requirements.txt exists
-
-# Run tests
-python -m pytest tests/ -v
-```
+- All the changes were done in the file `src/email_processor.py`
+- **Filter Emails**:
+  - Looked if all keywords are found in the lowercase subject of every email
+  - Lowercase subject is calculated only once per email
+- **Name Extraction**:
+  - Used compiled regex patterns
+  - Stored those patterns as protected instance variable
+  - Calculated only once since patterns remain constant
+  - Added two new patterns following the test data
+- **Process Emails**:
+  - Used simple threads to call the methods in email_processing and gmail_client
+  - 1 thread per email
+  - Used a shared counter array where 1 is appended on successful email sending (thread-safe)
+  - A separate private method named `_send_single_email` is defined where a single email is sent in a thread 

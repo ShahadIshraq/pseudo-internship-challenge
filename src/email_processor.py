@@ -1,11 +1,10 @@
 import re
-
-from .gmail_client import (  # import MockGmailClient
+from typing import cast
+from .gmail_client import (
     Email,
     GmailClientInterface,
     MockGmailClient,
 )
-
 
 class EmailProcessor:
     def __init__(self, gmail_client: GmailClientInterface):
@@ -51,14 +50,12 @@ class EmailProcessor:
         # end of non-modifiable block
 
         filtered_emails = self.filter_emails(emails)
-
         for email in filtered_emails:
             name = self.extract_name_from_email(email.body)
             response_body = self.generate_response(name)
-
             if self.is_mock:
-                # Simulate sending without delay
-                self.gmail_client.sent_emails.append({
+                mock_client = cast(MockGmailClient, self.gmail_client)
+                mock_client.sent_emails.append({
                     "to": email.sender,
                     "subject": f"Re: {email.subject}",
                     "body": response_body
@@ -70,7 +67,6 @@ class EmailProcessor:
                     subject=f"Re: {email.subject}",
                     body=response_body,
                 )
-
             responses_sent += 1
 
         # Do not modify this block
@@ -80,4 +76,5 @@ class EmailProcessor:
             "responses_sent": responses_sent,
         }
         # end of non-modifiable block
+
 

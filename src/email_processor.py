@@ -1,7 +1,5 @@
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from threading import Lock
-
 from .gmail_client import Email, GmailClientInterface
 
 
@@ -13,7 +11,6 @@ class EmailProcessor:
             r"(?:Best regards|Sincerely|Thanks|Regards|Best|Thank you|Kind regards),\s*([A-Za-z\s]+)",
             re.IGNORECASE,
         )
-        self.responses_sent_lock = Lock()
 
     def filter_emails(self, emails: list[Email]) -> list[Email]:
         # implement filtering logic based on required keywords
@@ -38,7 +35,6 @@ class EmailProcessor:
         # ]
 
         # implement name extraction logic
-        # pattern = r"(?:Best regards|Sincerely|Thanks|Regards|Best|Thank you|Kind regards),\s*([A-Za-z\s]+)"
         
         matches = list(re.finditer(self.name_match_pattern, email_body))
         return matches[-1].group(1).strip() if matches else None
@@ -89,7 +85,7 @@ Hiring Team"""
         emails = self.gmail_client.fetch_emails()
         filtered_emails = self.filter_emails(emails)
 
-        max_workers = 60  # need to be adjusted based on delay
+        max_workers = 150  # need to be adjusted based on delay
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             future_to_email = {
                 executor.submit(self._process_single_email, email): email

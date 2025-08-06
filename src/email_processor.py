@@ -75,7 +75,7 @@ Hiring Team"""
 
 
         threads = []
-        counter = []
+        counter: list = []
 
         for email in filtered_emails:
             thread = threading.Thread(target=self._send_single_email, args=(email, counter))
@@ -95,7 +95,7 @@ Hiring Team"""
         }
         # end of non-modifiable block
 
-    def _send_single_email(self, email: Email, counter: list) -> bool:
+    def _send_single_email(self, email: Email, counter: list) -> None:
         name = self.extract_name_from_email(email.body)
         response = self.generate_response(name)
         response_subject = f"Re: {email.subject}"

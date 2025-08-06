@@ -1,3 +1,4 @@
+import re
 import time
 
 from .gmail_client import Email, GmailClientInterface
@@ -9,8 +10,12 @@ class EmailProcessor:
         self.required_keywords = ["pseudo", "internship", "interest"]
 
     def filter_emails(self, emails: list[Email]) -> list[Email]:
-        # implement filtering logic based on required keywords
-        return []
+        filtered_list = []
+        for email in emails:
+            subject_lower = email.subject.lower()
+            if all(keyword in subject_lower for keyword in self.required_keywords):
+                filtered_list.append(email)
+        return filtered_list
 
     def extract_name_from_email(self, email_body: str) -> str | None:
         patterns = [
@@ -19,10 +24,15 @@ class EmailProcessor:
             r"Thanks,\s*([A-Za-z\s]+)",
             r"Regards,\s*([A-Za-z\s]+)",
             r"Best,\s*([A-Za-z\s]+)",
+            r"Thank you,\s*([A-Za-z\s]+)",
+            r"Kind regards,\s*([A-Za-z\s]+)",
         ]
 
-        # implement name extraction logic
-
+        for pattern in patterns:
+            match = re.search(pattern, email_body, re.IGNORECASE)
+            if match:
+                name = match.group(1).strip()
+                return name
         return None
 
     # Use this method. Do not modify it.
@@ -52,12 +62,18 @@ Hiring Team"""
         filtered_emails = []
         responses_sent = 0
         # end of non-modifiable block
+        
+        emails = self.gmail_client.fetch_emails()
+        filtered_emails = self.filter_emails(emails)
+        
+        for email in filtered_emails:
+            name = self.extract_name_from_email(email.body)
+            response_body = self.generate_response(name)
+            response_subject = f"Re: {email.subject}"
+            
+            if self.gmail_client.send_email(email.sender, response_subject, response_body):
+                responses_sent += 1
 
-        
-        # implement email processing logic.
-
-        
-        
         # Do not modify this block
         return {
             "total_emails": len(emails),
@@ -65,3 +81,5 @@ Hiring Team"""
             "responses_sent": responses_sent,
         }
         # end of non-modifiable block
+
+

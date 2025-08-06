@@ -16,7 +16,7 @@ class EmailProcessor:
         
         for email in emails:
             subject_lower = email.subject.lower()
-            #checking if all three required-keywords are present in the mail subject
+            # checking if all three required-keywords are present in the mail subject
             if ("pseudo" in subject_lower and "internship" in subject_lower and 
                 "interest" in subject_lower):
                 filtered_emails.append(email)
@@ -39,7 +39,7 @@ class EmailProcessor:
         last_position = -1
         
         for pattern in patterns:
-            #finding all matches for this pattern
+            # finding all matches for this pattern
             matches = re.finditer(pattern, email_body)
             for match in matches:
                 if match.end() > last_position:
@@ -103,11 +103,9 @@ Hiring Team"""
         
         # implement email processing logic.
         
-        # Fetch emails from Gmail client
+    
         emails = self.gmail_client.fetch_emails()
         filtered_emails = self.filter_emails(emails)
-
-        # Use a list to store the counter since it needs to be mutable across threads
         responses_sent_counter = [0]
         
         # Create and start threads for each email
@@ -121,11 +119,11 @@ Hiring Team"""
             threads.append(thread)
             thread.start()
         
-        # Wait for all threads to complete before returning
+        # waiting for all threads to complete before returning
         for thread in threads:
             thread.join()
         
-        # Update the responses_sent variable with the final count
+        # updating the responses_sent variable with the final count
         responses_sent = responses_sent_counter[0]
         
         

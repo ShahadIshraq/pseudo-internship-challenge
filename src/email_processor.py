@@ -1,5 +1,5 @@
 import re
-import threading
+from concurrent.futures import ThreadPoolExecutor
 
 from .gmail_client import Email, GmailClientInterface
 
@@ -74,18 +74,12 @@ Hiring Team"""
         emails = self.gmail_client.fetch_emails()
         filtered_emails = self.filter_emails(emails)
 
-        threads = []
         counter: list = []
+        num_workers = len(filtered_emails) // 10 + 1
 
-        for email in filtered_emails:
-            thread = threading.Thread(
-                target=self._send_single_email, args=(email, counter)
-            )
-            threads.append(thread)
-            thread.start()
-
-        for thread in threads:
-            thread.join()
+        with ThreadPoolExecutor(max_workers=num_workers) as executor:
+            for email in filtered_emails:
+                executor.submit(self._send_single_email, email, counter)
 
         responses_sent = len(counter)
 

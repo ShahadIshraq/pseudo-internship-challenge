@@ -99,7 +99,6 @@ Hiring Team"""
                     if success:
                         responses_sent += 1
                 except Exception:
-                    # You could add more robust error handling here if needed
                     pass
         
         # Do not modify this block

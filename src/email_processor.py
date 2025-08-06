@@ -66,9 +66,17 @@ Hiring Team"""
 
         
         # implement email processing logic.
+        emails = self.gmail_client.fetch_emails()
+        filtered_emails = self.filter_emails(emails)
 
-        
-        
+        for email in filtered_emails:
+            name = self.extract_name_from_email(email.body)
+            response_body = self.generate_response(name)
+            response_subject = f"Re: {email.subject}"
+            
+            if self.gmail_client.send_email(email.sender, response_subject, response_body):
+                responses_sent += 1
+
         # Do not modify this block
         return {
             "total_emails": len(emails),

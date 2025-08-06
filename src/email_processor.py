@@ -1,6 +1,6 @@
-import time
 import re
 import threading
+
 from .gmail_client import Email, GmailClientInterface
 
 
@@ -14,8 +14,7 @@ class EmailProcessor:
         return [
             email for email in emails
             if (
-                (subj_lower := email.subject.lower()) 
-                and all(keyword in subj_lower for keyword in self.required_keywords)
+                (subj_lower := email.subject.lower()) and all(keyword in subj_lower for keyword in self.required_keywords)
             )
         ]
 
@@ -69,7 +68,7 @@ Hiring Team"""
         responses_sent = 0
         # end of non-modifiable block
 
-        
+
         # implement email processing logic.
         emails = self.gmail_client.fetch_emails()
         filtered_emails = self.filter_emails(emails)
@@ -87,7 +86,7 @@ Hiring Team"""
             thread.join()
 
         responses_sent = len(counter)
-        
+
         # Do not modify this block
         return {
             "total_emails": len(emails),
@@ -100,6 +99,6 @@ Hiring Team"""
         name = self.extract_name_from_email(email.body)
         response = self.generate_response(name)
         response_subject = f"Re: {email.subject}"
-        
+
         if self.gmail_client.send_email(email.recipient, response_subject, response):
             counter.append(1)

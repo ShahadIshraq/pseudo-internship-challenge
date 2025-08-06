@@ -12,9 +12,11 @@ class EmailProcessor:
     def filter_emails(self, emails: list[Email]) -> list[Email]:
         # implement filtering logic based on required keywords
         return [
-            email for email in emails
+            email
+            for email in emails
             if (
-                (subj_lower := email.subject.lower()) and all(keyword in subj_lower for keyword in self.required_keywords)
+                (subj_lower := email.subject.lower())
+                and all(keyword in subj_lower for keyword in self.required_keywords)
             )
         ]
 
@@ -26,7 +28,7 @@ class EmailProcessor:
             r"Regards,\s*([A-Za-z\s]+)",
             r"Best,\s*([A-Za-z\s]+)",
             r"Thank you,\s*([A-Za-z\s]+)",
-            r"Kind regards,\s*([A-Za-z\s]+)"
+            r"Kind regards,\s*([A-Za-z\s]+)",
         ]
 
         # implement name extraction logic
@@ -68,17 +70,17 @@ Hiring Team"""
         responses_sent = 0
         # end of non-modifiable block
 
-
         # implement email processing logic.
         emails = self.gmail_client.fetch_emails()
         filtered_emails = self.filter_emails(emails)
-
 
         threads = []
         counter: list = []
 
         for email in filtered_emails:
-            thread = threading.Thread(target=self._send_single_email, args=(email, counter))
+            thread = threading.Thread(
+                target=self._send_single_email, args=(email, counter)
+            )
             threads.append(thread)
             thread.start()
 

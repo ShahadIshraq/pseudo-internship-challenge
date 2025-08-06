@@ -1,3 +1,4 @@
+import re
 import time
 
 from .gmail_client import Email, GmailClientInterface
@@ -10,7 +11,13 @@ class EmailProcessor:
 
     def filter_emails(self, emails: list[Email]) -> list[Email]:
         # implement filtering logic based on required keywords
-        return []
+        filtered = []
+        for email in emails:
+            if all(
+                keyword in email.subject.lower() for keyword in self.required_keywords
+            ):
+                filtered.append(email)
+        return filtered
 
     def extract_name_from_email(self, email_body: str) -> str | None:
         patterns = [
@@ -19,10 +26,15 @@ class EmailProcessor:
             r"Thanks,\s*([A-Za-z\s]+)",
             r"Regards,\s*([A-Za-z\s]+)",
             r"Best,\s*([A-Za-z\s]+)",
+            r"Thank you,\s*([A-Za-z\s]+)",
+            r"Kind regards,\s*([A-Za-z\s]+)",
         ]
 
         # implement name extraction logic
-
+        for pattern in patterns:
+            match = re.search(pattern, email_body)
+            if match:
+                return match.group(1).strip()
         return None
 
     # Use this method. Do not modify it.
@@ -48,15 +60,20 @@ Hiring Team"""
 
     def process_emails(self) -> dict:
         # Do not modify this block
-        emails = []
+        emails = self.gmail_client.fetch_emails()
         filtered_emails = []
         responses_sent = 0
         # end of non-modifiable block
 
-        
-        # implement email processing logic.
+        filtered_emails = self.filter_emails(emails)
 
-        
+        for email in filtered_emails:
+            name = self.extract_name_from_email(email.body)
+            response = self.generate_response(name)
+            self.gmail_client.send_email(
+                to=email.sender, subject=f"Re: {email.subject}", body=response
+            )
+            responses_sent += 1
         
         # Do not modify this block
         return {

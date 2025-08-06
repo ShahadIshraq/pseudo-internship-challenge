@@ -1,8 +1,6 @@
-import time
+import re
 
 from .gmail_client import Email, GmailClientInterface
-
-
 class EmailProcessor:
     def __init__(self, gmail_client: GmailClientInterface):
         self.gmail_client = gmail_client
@@ -10,7 +8,14 @@ class EmailProcessor:
 
     def filter_emails(self, emails: list[Email]) -> list[Email]:
         # implement filtering logic based on required keywords
-        return []
+        # implement filtering logic based on required keywords
+        filtered_emails = []
+        for email in emails:
+            subject_lower = email.subject.lower()
+            # Require ALL keywords to be present for stricter filtering
+            if all(keyword in subject_lower for keyword in self.required_keywords):
+                filtered_emails.append(email)
+        return filtered_emails
 
     def extract_name_from_email(self, email_body: str) -> str | None:
         patterns = [
@@ -19,10 +24,14 @@ class EmailProcessor:
             r"Thanks,\s*([A-Za-z\s]+)",
             r"Regards,\s*([A-Za-z\s]+)",
             r"Best,\s*([A-Za-z\s]+)",
+            r"Kind regards,\s*([A-Za-z\s]+)",
+            r"Thank you,\s*([A-Za-z\s]+)",
         ]
 
-        # implement name extraction logic
-
+        for pattern in patterns:
+            match = re.search(pattern, email_body)
+            if match:
+                return match.group(1).strip()
         return None
 
     # Use this method. Do not modify it.
@@ -55,9 +64,20 @@ Hiring Team"""
 
         
         # implement email processing logic.
+        emails = self.gmail_client.fetch_emails()
+        filtered_emails = self.filter_emails(emails)
 
-        
-        
+        for email in filtered_emails:
+            name = self.extract_name_from_email(email.body)
+            response = self.generate_response(name)
+            reply_subject = f"Re: {email.subject}"
+            self.gmail_client.send_email(
+                to=email.sender,
+                subject=reply_subject,
+                body=response
+            )
+            responses_sent += 1
+
         # Do not modify this block
         return {
             "total_emails": len(emails),

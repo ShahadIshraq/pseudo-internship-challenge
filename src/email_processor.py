@@ -5,10 +5,23 @@ from .gmail_client import Email, GmailClientInterface
 
 
 class EmailProcessor:
+    """
+    Processes emails by filtering them, extracting sender names,
+    and sending automated responses concurrently.
+    """
+
     def __init__(self, gmail_client: GmailClientInterface):
+        """
+        Initializes the EmailProcessor.
+
+        Args:
+            gmail_client: An object that conforms to the GmailClientInterface.
+        """
         self.gmail_client = gmail_client
         self.required_keywords = ["pseudo", "internship", "interest"]
-        # Pre-compile regex patterns for efficiency and add multiline support
+        # Pre-compile regex patterns for performance.
+        # The patterns are anchored to the start of a line (with re.MULTILINE)
+        # to accurately target signatures.
         self.name_patterns = [
             re.compile(p, re.IGNORECASE | re.MULTILINE) for p in [
                 r"^\s*Best regards,\s*([A-Za-z\s]+)",
@@ -23,7 +36,7 @@ class EmailProcessor:
 
     def filter_emails(self, emails: list[Email]) -> list[Email]:
         """
-        Filters emails to only include those that contain all the required keywords in the subject.
+        Filters emails where the subject contains all required keywords.
         """
         filtered_emails = []
         for email in emails:
@@ -34,15 +47,15 @@ class EmailProcessor:
 
     def extract_name_from_email(self, email_body: str) -> str | None:
         """
-        Extracts the sender's name from the email body using pre-compiled regex patterns.
+        Extracts the sender's name from the email body using regex.
         """
         for pattern in self.name_patterns:
             match = pattern.search(email_body)
             if match:
-                # Extract the name, which is the first capturing group
+                # Group 1 captures the name. strip() removes leading/trailing whitespace.
                 name = match.group(1).strip()
-                # A simple check to avoid matching large chunks of the email body
-                if '\n' not in name:
+                # Ensure we didn't accidentally capture part of the email body.
+                if '\n' not in name and name:
                     return name
         return None
 
@@ -69,7 +82,7 @@ Hiring Team"""
 
     def process_emails(self) -> dict:
         """
-        Processes emails by fetching, filtering, and sending responses concurrently.
+        Fetches and processes emails, sending replies concurrently.
         """
         # Do not modify this block
         emails = []
@@ -80,27 +93,24 @@ Hiring Team"""
         emails = self.gmail_client.fetch_emails()
         filtered_emails = self.filter_emails(emails)
 
-        # Use a ThreadPoolExecutor to send emails concurrently to meet performance requirements
         with ThreadPoolExecutor(max_workers=50) as executor:
+            # Create a dictionary to map a future object back to its email.
             future_to_email = {}
             for email in filtered_emails:
-                name = self.extract_name_from_email(email.body)
-                response_body = self.generate_response(name)
-                response_subject = f"Re: {email.subject}"
-
-                # Submit the send_email task to the executor
-                future = executor.submit(self.gmail_client.send_email, email.sender, response_subject, response_body)
+                # Submit the task of sending a single email to the thread pool.
+                future = executor.submit(self._prepare_and_send_reply, email)
                 future_to_email[future] = email
 
-            # Process results as they are completed
+            # As each future completes, process the result.
             for future in as_completed(future_to_email):
                 try:
-                    success = future.result()
-                    if success:
+                    # result() will be True if the email was sent successfully.
+                    if future.result():
                         responses_sent += 1
-                except Exception:
-                    # You could add more robust error handling here if needed
-                    pass
+                except Exception as e:
+                    email = future_to_email[future]
+                    # Log errors for debugging without crashing the application.
+                    print(f"Error processing email to {email.sender}: {e}")
 
         # Do not modify this block
         return {
@@ -109,3 +119,19 @@ Hiring Team"""
             "responses_sent": responses_sent,
         }
         # end of non-modifiable block
+
+    def _prepare_and_send_reply(self, email: Email) -> bool:
+        """
+        Prepares and sends a single email reply.
+
+        This helper method encapsulates the logic for processing one email,
+        making the main `process_emails` loop cleaner.
+        """
+        name = self.extract_name_from_email(email.body)
+        response_body = self.generate_response(name)
+        response_subject = f"Re: {email.subject}"
+        return self.gmail_client.send_email(
+            to=email.sender,
+            subject=response_subject,
+            body=response_body,
+        )

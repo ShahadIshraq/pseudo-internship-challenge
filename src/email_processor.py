@@ -1,10 +1,12 @@
 import re
 from typing import cast
+
 from .gmail_client import (
     Email,
     GmailClientInterface,
     MockGmailClient,
 )
+
 
 class EmailProcessor:
     def __init__(self, gmail_client: GmailClientInterface):

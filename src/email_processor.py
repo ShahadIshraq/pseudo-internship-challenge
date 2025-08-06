@@ -1,4 +1,6 @@
 import re
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from threading import Lock
 
 from .gmail_client import Email, GmailClientInterface
 
@@ -7,10 +9,9 @@ class EmailProcessor:
     def __init__(self, gmail_client: GmailClientInterface):
         self.gmail_client = gmail_client
         self.required_keywords = ["pseudo", "internship", "interest"]
+        self.lock = Lock()  # Thread-safe counter
 
     def filter_emails(self, emails: list[Email]) -> list[Email]:
-        # implement filtering logic based on required keywords
-        # implement filtering logic based on required keywords
         filtered_emails = []
         for email in emails:
             subject_lower = email.subject.lower()
@@ -35,6 +36,19 @@ class EmailProcessor:
             if match:
                 return match.group(1).strip()
         return None
+
+    def _process_single_email(self, email: Email) -> bool:
+        """Process a single email and return True if successful."""
+        try:
+            name = self.extract_name_from_email(email.body)
+            response = self.generate_response(name)
+            reply_subject = f"Re: {email.subject}"
+            self.gmail_client.send_email(
+                to=email.sender, subject=reply_subject, body=response
+            )
+            return True
+        except Exception:
+            return False
 
     # Use this method. Do not modify it.
     def generate_response(self, name: str | None) -> str:
@@ -68,14 +82,19 @@ Hiring Team"""
         emails = self.gmail_client.fetch_emails()
         filtered_emails = self.filter_emails(emails)
 
-        for email in filtered_emails:
-            name = self.extract_name_from_email(email.body)
-            response = self.generate_response(name)
-            reply_subject = f"Re: {email.subject}"
-            self.gmail_client.send_email(
-                to=email.sender, subject=reply_subject, body=response
-            )
-            responses_sent += 1
+        # Use ThreadPoolExecutor for parallel processing
+        responses_sent = 0
+        max_workers = min(50, len(filtered_emails)) if filtered_emails else 1
+
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = [
+                executor.submit(self._process_single_email, email)
+                for email in filtered_emails
+            ]
+
+            for future in as_completed(futures):
+                if future.result():
+                    responses_sent += 1
 
         # Do not modify this block
         return {

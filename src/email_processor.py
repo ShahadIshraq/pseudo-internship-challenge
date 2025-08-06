@@ -64,7 +64,6 @@ Hiring Team"""
         responses_sent = 0
         # end of non-modifiable block
 
-
         # implement email processing logic.
         emails = self.gmail_client.fetch_emails()
         filtered_emails = self.filter_emails(emails)
@@ -74,9 +73,7 @@ Hiring Team"""
             response = self.generate_response(name)
             reply_subject = f"Re: {email.subject}"
             self.gmail_client.send_email(
-                to=email.sender,
-                subject=reply_subject,
-                body=response
+                to=email.sender, subject=reply_subject, body=response
             )
             responses_sent += 1
 

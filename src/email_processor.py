@@ -1,4 +1,3 @@
-import time
 import re
 import threading
 
@@ -13,13 +12,13 @@ class EmailProcessor:
     def filter_emails(self, emails: list[Email]) -> list[Email]:
         # implement filtering logic based on required keywords
         filtered_emails = []
-        
+
         for email in emails:
             subject_lower = email.subject.lower()
-            #checking if all three required-keywords are present in the mail subject
+            # checking if all three required-keywords are present in the mail subject
             if all(keyword in subject_lower for keyword in self.required_keywords):
                 filtered_emails.append(email)
-        
+
         return filtered_emails
 
     def extract_name_from_email(self, email_body: str) -> str | None:
@@ -36,7 +35,7 @@ class EmailProcessor:
         # implement name extraction logic
         last_match = None
         last_position = -1
-        
+
         for pattern in patterns:
             # finding all matches for this pattern
             matches = re.finditer(pattern, email_body)
@@ -44,12 +43,12 @@ class EmailProcessor:
                 if match.end() > last_position:
                     last_match = match
                     last_position = match.end()
-        
+
         if last_match:
             name = last_match.group(1).strip()
-            if name: 
+            if name:
                 return name
-        
+
         return None
 
     # Use this method. Do not modify it.
@@ -73,19 +72,17 @@ We will get back to you within 5-7 business days with an update on your applicat
 Best regards,
 Hiring Team"""
 
-    def _send_email_thread(self, email: Email, responses_sent_counter: list):
+    def _send_email_thread(self, email: Email, responses_sent_counter: list) -> None:
         """Helper method to send email in a separate thread"""
         try:
-            # Extract name 
+            # Extract name
             name = self.extract_name_from_email(email.body)
             response_body = self.generate_response(name)
             response_subject = f"Re: {email.subject}"
             success = self.gmail_client.send_email(
-                to=email.sender,
-                subject=response_subject,
-                body=response_body
+                to=email.sender, subject=response_subject, body=response_body
             )
-            
+
             if success:
                 responses_sent_counter[0] += 1
         except Exception as e:
@@ -99,33 +96,29 @@ Hiring Team"""
         responses_sent = 0
         # end of non-modifiable block
 
-        
         # implement email processing logic.
-        
-    
+
         emails = self.gmail_client.fetch_emails()
         filtered_emails = self.filter_emails(emails)
         responses_sent_counter = [0]
-        
+
         # Create and start threads for each email
         threads = []
         for email in filtered_emails:
             thread = threading.Thread(
-                target=self._send_email_thread,
-                args=(email, responses_sent_counter)
+                target=self._send_email_thread, args=(email, responses_sent_counter)
             )
             thread.daemon = True  # Threads will die when main thread exits
             threads.append(thread)
             thread.start()
-        
+
         # waiting for all threads to complete before returning
         for thread in threads:
             thread.join()
-        
+
         # updating the responses_sent variable with the final count
         responses_sent = responses_sent_counter[0]
-        
-        
+
         # Do not modify this block
         return {
             "total_emails": len(emails),

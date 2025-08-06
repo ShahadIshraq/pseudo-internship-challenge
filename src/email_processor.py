@@ -21,7 +21,7 @@ class EmailProcessor:
         self.required_keywords = ["pseudo", "internship", "interest"]
         # Pre-compile regex patterns for performance.
         # The patterns are anchored to the start of a line (with re.MULTILINE)
-        # to accurately target signatures.
+        # to accurately target signatures and avoid matching quoted text.
         self.name_patterns = [
             re.compile(p, re.IGNORECASE | re.MULTILINE) for p in [
                 r"^\s*Best regards,\s*([A-Za-z\s]+)",
@@ -54,7 +54,7 @@ class EmailProcessor:
             if match:
                 # Group 1 captures the name. strip() removes leading/trailing whitespace.
                 name = match.group(1).strip()
-                # Ensure we didn't accidentally capture part of the email body.
+                # Ensure we didn't accidentally capture part of the email body or an empty string.
                 if '\n' not in name and name:
                     return name
         return None
@@ -93,23 +93,24 @@ Hiring Team"""
         emails = self.gmail_client.fetch_emails()
         filtered_emails = self.filter_emails(emails)
 
+        # Use ThreadPoolExecutor for modern, clean, and efficient I/O-bound concurrency.
         with ThreadPoolExecutor(max_workers=50) as executor:
-            # Create a dictionary to map a future object back to its email.
-            future_to_email = {}
-            for email in filtered_emails:
-                # Submit the task of sending a single email to the thread pool.
-                future = executor.submit(self._prepare_and_send_reply, email)
-                future_to_email[future] = email
+            # Create a dictionary to map a future object back to its email for error logging.
+            future_to_email = {
+                executor.submit(self._prepare_and_send_reply, email): email
+                for email in filtered_emails
+            }
 
             # As each future completes, process the result.
             for future in as_completed(future_to_email):
+                email = future_to_email[future]
                 try:
                     # result() will be True if the email was sent successfully.
-                    if future.result():
+                    was_sent = future.result()
+                    if was_sent:
                         responses_sent += 1
                 except Exception as e:
-                    email = future_to_email[future]
-                    # Log errors for debugging without crashing the application.
+                    # Log errors for debugging without crashing the entire application.
                     print(f"Error processing email to {email.sender}: {e}")
 
         # Do not modify this block
@@ -125,7 +126,8 @@ Hiring Team"""
         Prepares and sends a single email reply.
 
         This helper method encapsulates the logic for processing one email,
-        making the main `process_emails` loop cleaner.
+        making the main `process_emails` loop cleaner and the task suitable
+        for submission to a thread pool.
         """
         name = self.extract_name_from_email(email.body)
         response_body = self.generate_response(name)

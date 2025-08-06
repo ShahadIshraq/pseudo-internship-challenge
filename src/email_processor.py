@@ -1,6 +1,8 @@
 import re
 
 from .gmail_client import Email, GmailClientInterface
+
+
 class EmailProcessor:
     def __init__(self, gmail_client: GmailClientInterface):
         self.gmail_client = gmail_client
@@ -62,7 +64,7 @@ Hiring Team"""
         responses_sent = 0
         # end of non-modifiable block
 
-        
+
         # implement email processing logic.
         emails = self.gmail_client.fetch_emails()
         filtered_emails = self.filter_emails(emails)

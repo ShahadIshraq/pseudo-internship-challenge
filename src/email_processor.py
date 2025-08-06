@@ -1,5 +1,6 @@
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
 from .gmail_client import Email, GmailClientInterface
 
 
@@ -35,7 +36,7 @@ class EmailProcessor:
         # ]
 
         # implement name extraction logic
-        
+
         matches = list(re.finditer(self.name_match_pattern, email_body))
         return matches[-1].group(1).strip() if matches else None
 

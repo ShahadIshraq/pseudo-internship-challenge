@@ -1,11 +1,7 @@
 import re
 from typing import cast
 
-from .gmail_client import (
-    Email,
-    GmailClientInterface,
-    MockGmailClient,
-)
+from .gmail_client import Email, GmailClientInterface, MockGmailClient
 
 
 class EmailProcessor:
@@ -18,7 +14,9 @@ class EmailProcessor:
         return [
             email
             for email in emails
-            if all(keyword in email.subject.lower() for keyword in self.required_keywords)
+            if all(
+                keyword in email.subject.lower() for keyword in self.required_keywords
+            )
         ]
 
     def extract_name_from_email(self, email_body: str) -> str | None:
@@ -57,11 +55,13 @@ class EmailProcessor:
             response_body = self.generate_response(name)
             if self.is_mock:
                 mock_client = cast(MockGmailClient, self.gmail_client)
-                mock_client.sent_emails.append({
-                    "to": email.sender,
-                    "subject": f"Re: {email.subject}",
-                    "body": response_body
-                })
+                mock_client.sent_emails.append(
+                    {
+                        "to": email.sender,
+                        "subject": f"Re: {email.subject}",
+                        "body": response_body,
+                    }
+                )
             else:
                 # Real send for production
                 self.gmail_client.send_email(
@@ -78,5 +78,3 @@ class EmailProcessor:
             "responses_sent": responses_sent,
         }
         # end of non-modifiable block
-
-

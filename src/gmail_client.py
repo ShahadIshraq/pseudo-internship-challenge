@@ -45,3 +45,4 @@ class MockGmailClient(GmailClientInterface):
     def send_email(self, to: str, subject: str, body: str) -> bool:
         self.sent_emails.append({"to": to, "subject": subject, "body": body})
         return True
+        

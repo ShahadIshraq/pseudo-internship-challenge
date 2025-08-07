@@ -1,5 +1,6 @@
+
 import re
-import time
+from concurrent.futures import ThreadPoolExecutor
 
 from .gmail_client import Email, GmailClientInterface
 
@@ -62,11 +63,9 @@ Hiring Team"""
         filtered_emails = []
         responses_sent = 0
         # end of non-modifiable block
-        
+
         emails = self.gmail_client.fetch_emails()
         filtered_emails = self.filter_emails(emails)
-        
-        from concurrent.futures import ThreadPoolExecutor
 
         def send(email):
             name = self.extract_name_from_email(email.body)
@@ -85,4 +84,3 @@ Hiring Team"""
             "responses_sent": responses_sent,
         }
         # end of non-modifiable block
-

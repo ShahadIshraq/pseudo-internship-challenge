@@ -69,13 +69,15 @@ Hiring Team"""
         filtered_emails = self.filter_emails(emails)
 
         # Process emails concurrently for improved performance
-        def send_single_response(email):
+        def send_single_response(email: Email) -> int:
             """Process and send response for a single email"""
             name = self.extract_name_from_email(email.body)
             response_body = self.generate_response(name)
             response_subject = f"Re: {email.subject}"
-            
-            if self.gmail_client.send_email(email.sender, response_subject, response_body):
+
+            if self.gmail_client.send_email(
+                email.sender, response_subject, response_body
+            ):
                 return 1
             return 0
 

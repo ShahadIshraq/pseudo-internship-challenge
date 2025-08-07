@@ -85,7 +85,8 @@ class TestEmailProcessor:
         assert "total_emails" in result
         assert "filtered_emails" in result
         assert "responses_sent" in result
-        assert result["total_emails"] == 10      
+        assert result["total_emails"] == 10
+        
 
     def test_email_filtering_accuracy(self):
         valid_emails = []

@@ -1,6 +1,5 @@
 import re
-import time
-
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from .gmail_client import Email, GmailClientInterface
 
 
@@ -64,18 +63,37 @@ Hiring Team"""
         responses_sent = 0
         # end of non-modifiable block
 
-        
         # implement email processing logic.
         emails = self.gmail_client.fetch_emails()
         filtered_emails = self.filter_emails(emails)
 
-        for email in filtered_emails:
+        # Process emails concurrently for improved performance
+        def send_single_response(email):
+            """Process and send response for a single email"""
             name = self.extract_name_from_email(email.body)
             response_body = self.generate_response(name)
             response_subject = f"Re: {email.subject}"
             
             if self.gmail_client.send_email(email.sender, response_subject, response_body):
-                responses_sent += 1
+                return 1
+            return 0
+
+        # Use ThreadPoolExecutor for concurrent email processing
+        with ThreadPoolExecutor(max_workers=50) as executor:
+            # Submit all email processing tasks to the thread pool
+            submitted_tasks = {
+                executor.submit(send_single_response, email): email 
+                for email in filtered_emails
+            }
+            
+            # Collect results as tasks complete
+            for completed_task in as_completed(submitted_tasks):
+                try:
+                    responses_sent += completed_task.result()
+                except Exception as e:
+                    # Log error but continue processing other emails
+                    print(f"Error processing email: {e}")
+                    continue
 
         # Do not modify this block
         return {

@@ -10,8 +10,7 @@ class EmailProcessor:
         self.required_keywords = ["pseudo", "internship", "interest"]
         # Pre-compile all regex patterns for maximum performance
         self.subject_pattern = re.compile(
-            r'(?=.*pseudo)(?=.*internship)(?=.*interest)',
-            re.IGNORECASE
+            r"(?=.*pseudo)(?=.*internship)(?=.*interest)", re.IGNORECASE
         )
         self.name_patterns = [
             re.compile(r"Best regards,\s*([A-Za-z\s]+)", re.IGNORECASE),
@@ -96,7 +95,5 @@ Hiring Team"""
         response = self.generate_response(name)
         send_subject = f"Re: {email.subject}"
         return self.gmail_client.send_email(
-            to=email.sender,
-            subject=send_subject,
-            body=response
+            to=email.sender, subject=send_subject, body=response
         )

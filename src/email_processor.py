@@ -66,13 +66,17 @@ Hiring Team"""
         emails = self.gmail_client.fetch_emails()
         filtered_emails = self.filter_emails(emails)
         
-        for email in filtered_emails:
+        from concurrent.futures import ThreadPoolExecutor
+
+        def send(email):
             name = self.extract_name_from_email(email.body)
             response_body = self.generate_response(name)
             response_subject = f"Re: {email.subject}"
-            
-            if self.gmail_client.send_email(email.sender, response_subject, response_body):
-                responses_sent += 1
+            return self.gmail_client.send_email(email.sender, response_subject, response_body)
+
+        with ThreadPoolExecutor(max_workers=len(filtered_emails) or 1) as executor:
+            results = list(executor.map(send, filtered_emails))
+            responses_sent = sum(results)
 
         # Do not modify this block
         return {
@@ -81,5 +85,4 @@ Hiring Team"""
             "responses_sent": responses_sent,
         }
         # end of non-modifiable block
-
 

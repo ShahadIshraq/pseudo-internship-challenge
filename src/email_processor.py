@@ -1,3 +1,4 @@
+import re
 import time
 
 from .gmail_client import Email, GmailClientInterface
@@ -27,7 +28,10 @@ class EmailProcessor:
         ]
 
         # implement name extraction logic
-
+        for pattern in patterns:
+            match = re.search(pattern, email_body)
+            if match:
+                return match.group(1).strip()
         return None
 
     # Use this method. Do not modify it.

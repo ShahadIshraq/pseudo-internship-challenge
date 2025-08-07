@@ -33,6 +33,11 @@ class EmailProcessor:
             match = pattern.search(email_body)
             if match:
                 return match.group(1).strip()
+        # Optimized name extraction with pre-compiled patterns
+        for pattern in self.name_patterns:
+            match = pattern.search(email_body)
+            if match:
+                return match.group(1).strip()
         return None
 
     # Use this method. Do not modify it.
@@ -84,6 +89,17 @@ Hiring Team"""
             "responses_sent": responses_sent,
         }
         # end of non-modifiable block
+
+    def _process_single_email(self, email: Email) -> bool:
+        """Helper method to process a single email"""
+        name = self.extract_name_from_email(email.body)
+        response = self.generate_response(name)
+        send_subject = f"Re: {email.subject}"
+        return self.gmail_client.send_email(
+            to=email.sender,
+            subject=send_subject,
+            body=response
+        )
 
     def _process_single_email(self, email: Email) -> bool:
         """Helper method to process a single email"""

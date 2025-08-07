@@ -34,7 +34,9 @@ class EmailProcessor:
         return [
             email
             for email in emails
-            if all(keyword in email.subject.lower() for keyword in self.required_keywords)
+            if all(
+                keyword in email.subject.lower() for keyword in self.required_keywords
+            )
         ]
 
     def extract_name_from_email(self, email_body: str) -> str | None:
@@ -100,7 +102,7 @@ Hiring Team"""
         }
         # end of non-modifiable block
 
-    def process_single_email(self, email: Email):
+    def process_single_email(self, email: Email) -> None:
         # Extract the name from the email body
         # Generate a response based on the extracted name
         # Send the response back to the sender

@@ -190,4 +190,4 @@ class TestEmailProcessor:
         assert result["total_emails"] == 1000
         assert (
             processing_time < self.performance_threshold
-        ), f"Processing took {processing_time:.2f}s, exceeded threshold of {self.performance_threshold}s"
+        ), f"Processing took {processing_time:.2f}s, exceeded threshold of {self.performance_threshold}s"# test trigger

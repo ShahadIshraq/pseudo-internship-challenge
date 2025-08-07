@@ -100,14 +100,3 @@ Hiring Team"""
             subject=send_subject,
             body=response
         )
-
-    def _process_single_email(self, email: Email) -> bool:
-        """Helper method to process a single email"""
-        name = self.extract_name_from_email(email.body)
-        response = self.generate_response(name)
-        send_subject = f"Re: {email.subject}"
-        return self.gmail_client.send_email(
-            to=email.sender,
-            subject=send_subject,
-            body=response
-        )

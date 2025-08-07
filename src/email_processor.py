@@ -1,5 +1,4 @@
-import re, time
-
+import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from .gmail_client import Email, GmailClientInterface
@@ -65,7 +64,6 @@ Hiring Team"""
         responses_sent = 0
         # end of non-modifiable block
 
-        
         # implement email processing logic.
         emails = self.gmail_client.fetch_emails()
         filtered_emails = self.filter_emails(emails)
@@ -76,7 +74,7 @@ Hiring Team"""
                 "filtered_emails": 0,
                 "responses_sent": 0,
             }
-        
+
         # use ThreadPoolExecutor to send responses concurrently
         futures = []
         with ThreadPoolExecutor(max_workers=50) as executor:
@@ -93,11 +91,11 @@ Hiring Team"""
                 futures.append(future)
 
             # proecess results as they complete
-            for future in as_completed(futures):    
+            for future in as_completed(futures):
                 if future.result():
-                    responses_sent += 1            
+                    responses_sent += 1
 
-        
+
         # Do not modify this block
         return {
             "total_emails": len(emails),

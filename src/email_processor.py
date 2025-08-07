@@ -1,7 +1,5 @@
-import time
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import List
 
 from .gmail_client import Email, GmailClientInterface
 
@@ -25,7 +23,7 @@ class EmailProcessor:
             re.compile(r"Kind regards,\s*([A-Za-z\s]+)", re.IGNORECASE),
         ]
 
-    def filter_emails(self, emails: List[Email]) -> List[Email]:
+    def filter_emails(self, emails: list[Email]) -> list[Email]:
         # Optimized filtering with pre-compiled pattern
         return [email for email in emails if self.subject_pattern.search(email.subject)]
 
@@ -74,7 +72,7 @@ Hiring Team"""
             for email in filtered_emails:
                 future = executor.submit(self._process_single_email, email)
                 futures.append(future)
-            
+
             for future in as_completed(futures):
                 if future.result():
                     responses_sent += 1

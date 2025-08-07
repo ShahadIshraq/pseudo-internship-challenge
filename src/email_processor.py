@@ -11,8 +11,10 @@ class EmailProcessor:
         self.gmail_client = gmail_client
         self.required_keywords = ["pseudo", "internship", "interest"]
     
-    #filtering emails based on the required keywords
+    
     def filter_emails(self, emails: List[Email]) -> List[Email]:
+        # implement filtering logic based on required keywords
+
         filtered_emails: List[Email] = []
         for email in emails:
             subject = email.subject.lower()
@@ -27,10 +29,10 @@ class EmailProcessor:
             r"Thanks,\s*([A-Za-z\s]+)",
             r"Regards,\s*([A-Za-z\s]+)",
             r"Best,\s*([A-Za-z\s]+)",
-            r"Thank you,\s*([A-Za-z\s]+)",
-            r"Kind regards,\s*([A-Za-z\s]+)",
         ]
 
+        # implement name extraction logic
+        
         for pattern in patterns:
             match = re.search(pattern, email_body, flags=re.IGNORECASE)
             if match:

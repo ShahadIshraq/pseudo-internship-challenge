@@ -1,5 +1,6 @@
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
 from .gmail_client import Email, GmailClientInterface
 
 
@@ -82,10 +83,10 @@ Hiring Team"""
         with ThreadPoolExecutor(max_workers=50) as executor:
             # Submit all email processing tasks to the thread pool
             submitted_tasks = {
-                executor.submit(send_single_response, email): email 
+                executor.submit(send_single_response, email): email
                 for email in filtered_emails
             }
-            
+
             # Collect results as tasks complete
             for completed_task in as_completed(submitted_tasks):
                 try:

@@ -85,7 +85,7 @@ class TestEmailProcessor:
         assert "total_emails" in result
         assert "filtered_emails" in result
         assert "responses_sent" in result
-        assert result["total_emails"] == 10 
+        assert result["total_emails"] == 10
 
     def test_email_filtering_accuracy(self):
         valid_emails = []
@@ -176,7 +176,6 @@ class TestEmailProcessor:
         assert (end_time - start_time) < self.performance_threshold
         assert len(mock_client.sent_emails) == result["responses_sent"]
 
-
     def test_performance_with_1000_emails(self):
         test_emails = self.data_generator.generate_test_emails(1000)
         mock_client = MockGmailClient(test_emails)
@@ -192,4 +191,3 @@ class TestEmailProcessor:
         assert (
             processing_time < self.performance_threshold
         ), f"Processing took {processing_time:.2f}s, exceeded threshold of {self.performance_threshold}s"
-        

@@ -86,7 +86,7 @@ Hiring Team"""
                     self.gmail_client.send_email,
                     to=email.sender,
                     subject="Re: " + email.subject,
-                    body=response_body
+                    body=response_body,
                 )
                 futures.append(future)
 
@@ -94,7 +94,6 @@ Hiring Team"""
             for future in as_completed(futures):
                 if future.result():
                     responses_sent += 1
-
 
         # Do not modify this block
         return {

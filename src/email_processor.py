@@ -1,13 +1,16 @@
 import re
 import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from .gmail_client import Email, GmailClientInterface
 
 
 class EmailProcessor:
-    def __init__(self, gmail_client: GmailClientInterface):
+    def __init__(self, gmail_client: GmailClientInterface, max_workers: int = 50):
         self.gmail_client = gmail_client
         self.keywords = ["pseudo", "internship", "interest"]
+        self.max_workers = max_workers
+        self.count_lock = threading.Lock()
 
     def filter_emails(self, all_emails: list[Email]) -> list[Email]:
         matched = []
@@ -29,41 +32,38 @@ class EmailProcessor:
         ]
         best_match = None
         furthest_index = -1
-
         for pattern in regex_patterns:
             for match in re.finditer(pattern, body, re.IGNORECASE):
                 if match.end() > furthest_index:
                     best_match = match
                     furthest_index = match.end()
-
         if best_match:
             extracted_name = best_match.group(1).strip()
             return extracted_name if extracted_name else None
         return None
 
-    # Do not modify
     def generate_response(self, name: str | None) -> str:
         if name:
             return (
-                f"Dear {name},"
+                f"Dear {name}, "
                 "Thank you for your interest in our pseudo internship program. "
-                "We have received your application and will review it carefully."
-                "We will get back to you within 5-7 business days with an update on your application status."
-                "Best regards,"
+                "We have received your application and will review it carefully. "
+                "We will get back to you within 5-7 business days with an update on your application status. "
+                "Best regards, "
                 "Hiring Team"
             )
         else:
             return (
-                "Dear Applicant,"
+                "Dear Applicant, "
                 "Thank you for your interest in our pseudo internship program. "
-                "We have received your application and will review it carefully."
-                "We will get back to you within 5-7 business days with an update on your application status."
-                "Best regards,"
+                "We have received your application and will review it carefully. "
+                "We will get back to you within 5-7 business days with an update on your application status. "
+                "Best regards, "
                 "Hiring Team"
             )
 
-    def _handle_sending(self, mail: Email, sent_counter: list[int]) -> None:
-        """Handles email response logic in a thread-safe way"""
+    def _handle_sending(self, mail: Email) -> bool:
+        """Send email and return True if sent successfully."""
         try:
             recipient_name = self.extract_name_from_email(mail.body)
             reply = self.generate_response(recipient_name)
@@ -72,10 +72,10 @@ class EmailProcessor:
                 subject=f"Re: {mail.subject}",
                 body=reply,
             )
-            if sent:
-                sent_counter[0] += 1
+            return sent
         except Exception as err:
             print(f"Failed to send email to {mail.sender}: {err}")
+            return False
 
     def process_emails(self) -> dict:
         # Do not modify this block
@@ -85,19 +85,25 @@ class EmailProcessor:
         # end of non-modifiable block
 
         filtered_emails = self.filter_emails(emails)
-        count = [0]
-        job_threads = []
 
-        for mail in filtered_emails:
-            t = threading.Thread(target=self._handle_sending, args=(mail, count))
-            t.daemon = True
-            job_threads.append(t)
-            t.start()
+        responses_sent = 0
 
-        for t in job_threads:
-            t.join()
+        # Use ThreadPoolExecutor to limit concurrency
+        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+            futures = {
+                executor.submit(self._handle_sending, mail): mail
+                for mail in filtered_emails
+            }
 
-        responses_sent = count[0]
+            for future in as_completed(futures):
+                try:
+                    sent = future.result()
+                    if sent:
+                        with self.count_lock:
+                            responses_sent += 1
+                except Exception as e:
+                    mail = futures[future]
+                    print(f"Exception for email from {mail.sender}: {e}")
 
         # Do not modify this block
         return {

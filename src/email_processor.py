@@ -1,8 +1,8 @@
+import concurrent.futures
 import re
 
-
 from .gmail_client import Email, GmailClientInterface
-import concurrent.futures
+
 
 class EmailProcessor:
     def __init__(self, gmail_client: GmailClientInterface):

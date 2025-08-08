@@ -1,7 +1,9 @@
 import time
 import re
+import threading
 
 from .gmail_client import Email, GmailClientInterface
+from concurrent.futures import ThreadPoolExecutor
 
 
 class EmailProcessor:
@@ -73,18 +75,31 @@ Hiring Team"""
         # Filter based on keywords
         filtered_emails = self.filter_emails(emails)
 
-        # Process filtered emails
-        responses = []
-        for email in filtered_emails:
-            name = self.extract_name_from_email(email.body)
-            response_body = self.generate_response(name)
-            response_subject = f"Re: {email.subject}"
-            responses.append((email.sender, response_subject, response_body))
+        # Process emails in parallel using multiple threads
+        max_workers = min(31, len(filtered_emails))
+        if max_workers > 0:
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                # Create all the tasks first
+                tasks = {}
+                for email in filtered_emails:
+                    def process_one_email(e=email):
+                        name = self.extract_name_from_email(e.body)
+                        response_body = self.generate_response(name)
+                        response_subject = f"Re: {e.subject}"
+                        return self.gmail_client.send_email(
+                            to=e.sender,
+                            subject=response_subject,
+                            body=response_body
+                        )
 
-        # Send all responses
-        for to, subject, body in responses:
-            if self.gmail_client.send_email(to=to, subject=subject, body=body):
-                responses_sent += 1
+                    # Submit the task
+                    task = executor.submit(process_one_email)
+                    tasks[task] = email
+
+                # Wait for all tasks and collect results
+                for task in tasks:
+                    if task.result():
+                        responses_sent += 1
 
         # Do not modify this block
         return {

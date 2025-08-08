@@ -1,4 +1,5 @@
 import re
+from collections.abc import Generator
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from .gmail_client import Email, GmailClientInterface
@@ -18,7 +19,9 @@ class EmailProcessor:
                 filtered_emails.append(email)
         return filtered_emails
 
-    def filtered_emails_generator(self, emails):
+    def filtered_emails_generator(
+        self, emails: list[Email]
+    ) -> "Generator[Email, None, None]":
         for email in emails:
             subject_lower = email.subject.lower()
             if all(keyword in subject_lower for keyword in self.required_keywords):

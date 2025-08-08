@@ -1,6 +1,5 @@
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from threading import Lock
 
 from .gmail_client import Email, GmailClientInterface
 
@@ -9,7 +8,6 @@ class EmailProcessor:
     def __init__(self, gmail_client: GmailClientInterface):
         self.gmail_client = gmail_client
         self.required_keywords = ["pseudo", "internship", "interest"]
-        self.lock = Lock()  # Thread-safe counter
 
     def filter_emails(self, emails: list[Email]) -> list[Email]:
         filtered_emails = []
@@ -19,6 +17,12 @@ class EmailProcessor:
             if all(keyword in subject_lower for keyword in self.required_keywords):
                 filtered_emails.append(email)
         return filtered_emails
+
+    def filtered_emails_generator(self, emails):
+        for email in emails:
+            subject_lower = email.subject.lower()
+            if all(keyword in subject_lower for keyword in self.required_keywords):
+                yield email
 
     def extract_name_from_email(self, email_body: str) -> str | None:
         patterns = [
@@ -78,14 +82,19 @@ Hiring Team"""
         responses_sent = 0
         # end of non-modifiable block
 
-        # implement email processing logic.
         emails = self.gmail_client.fetch_emails()
-        filtered_emails = self.filter_emails(emails)
 
-        # Use ThreadPoolExecutor for parallel processing
+        # Ensure emails is a list so len() works in return block
+        if not hasattr(emails, "__len__"):
+            emails = list(emails)
+
+        filtered_emails_iter = self.filtered_emails_generator(emails)
+        filtered_emails = list(filtered_emails_iter)
+        filtered_emails_count = len(filtered_emails)
+
+        max_workers = min(50, max(5, filtered_emails_count))
+
         responses_sent = 0
-        max_workers = min(50, len(filtered_emails)) if filtered_emails else 1
-
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = [
                 executor.submit(self._process_single_email, email)

@@ -1,5 +1,5 @@
 import time
-
+import re
 from .gmail_client import Email, GmailClientInterface
 
 
@@ -19,15 +19,23 @@ class EmailProcessor:
 
     def extract_name_from_email(self, email_body: str) -> str | None:
         patterns = [
-            r"Best regards,\s*([A-Za-z\s]+)",
-            r"Sincerely,\s*([A-Za-z\s]+)",
-            r"Thanks,\s*([A-Za-z\s]+)",
-            r"Regards,\s*([A-Za-z\s]+)",
-            r"Best,\s*([A-Za-z\s]+)",
+            r"Best regards,\s*([\w\s]+)",
+            r"Sincerely,\s*([\w\s]+)",
+            r"Thanks,\s*([\w\s]+)",
+            r"Regards,\s*([\w\s]+)",
+            r"Best,\s*([\w\s]+)",
+            r"Thank you,\s*([\w\s]+)",
+            r"Kind regards,\s*([\w\s]+)",
         ]
 
-        # implement name extraction logic
 
+        # implement name extraction logic
+        for pattern in patterns:
+            match = re.search(pattern, email_body, re.IGNORECASE)
+            if match:
+                name = match.group(1).strip()
+                if name and " " in name:
+                    return name
         return None
 
     # Use this method. Do not modify it.

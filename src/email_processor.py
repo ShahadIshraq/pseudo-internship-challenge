@@ -60,15 +60,21 @@ Hiring Team"""
 
     def process_emails(self) -> dict:
         # Do not modify this block
-        emails = []
-        filtered_emails = []
+        emails = self.gmail_client.fetch_emails()
+        filtered_emails = self.filter_emails(emails)
         responses_sent = 0
         # end of non-modifiable block
 
         
         # implement email processing logic.
-
-        
+        for email in filtered_emails:
+            name = self.extract_name_from_email(email.body)
+            response_body = self.generate_response(name)
+            subject = f"Re: {email.subject}"
+            sent = self.gmail_client.send_email(email.sender, subject, response_body)
+            if sent:
+                responses_sent += 1
+            
         
         # Do not modify this block
         return {

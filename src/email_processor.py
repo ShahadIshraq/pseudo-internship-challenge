@@ -1,4 +1,5 @@
 import time
+import re
 
 from .gmail_client import Email, GmailClientInterface
 
@@ -9,8 +10,12 @@ class EmailProcessor:
         self.required_keywords = ["pseudo", "internship", "interest"]
 
     def filter_emails(self, emails: list[Email]) -> list[Email]:
-        # implement filtering logic based on required keywords
-        return []
+        filtered = []
+        for email in emails:
+            subject_lower = email.subject.lower()
+            if all(keyword in subject_lower for keyword in self.required_keywords):
+                filtered.append(email)
+        return filtered
 
     def extract_name_from_email(self, email_body: str) -> str | None:
         patterns = [
@@ -19,10 +24,19 @@ class EmailProcessor:
             r"Thanks,\s*([A-Za-z\s]+)",
             r"Regards,\s*([A-Za-z\s]+)",
             r"Best,\s*([A-Za-z\s]+)",
+            r"Thank you,\s*([A-Za-z\s]+)",
+            r"Kind regards,\s*([A-Za-z\s]+)",
+            r"Yours sincerely,\s*([A-Za-z\s]+)",
+            r"Yours truly,\s*([A-Za-z\s]+)",
+            r"Cheers,\s*([A-Za-z\s]+)",
         ]
 
-        # implement name extraction logic
-
+        for pattern in patterns:
+            match = re.search(pattern, email_body, re.IGNORECASE)
+            if match:
+                name = match.group(1).strip()
+                if name:
+                    return name
         return None
 
     # Use this method. Do not modify it.
@@ -53,11 +67,25 @@ Hiring Team"""
         responses_sent = 0
         # end of non-modifiable block
 
-        
-        # implement email processing logic.
+        # Fetch emails from Gmail
+        emails = self.gmail_client.fetch_emails()
 
-        
-        
+        # Filter based on keywords
+        filtered_emails = self.filter_emails(emails)
+
+        # Process filtered emails
+        responses = []
+        for email in filtered_emails:
+            name = self.extract_name_from_email(email.body)
+            response_body = self.generate_response(name)
+            response_subject = f"Re: {email.subject}"
+            responses.append((email.sender, response_subject, response_body))
+
+        # Send all responses
+        for to, subject, body in responses:
+            if self.gmail_client.send_email(to=to, subject=subject, body=body):
+                responses_sent += 1
+
         # Do not modify this block
         return {
             "total_emails": len(emails),

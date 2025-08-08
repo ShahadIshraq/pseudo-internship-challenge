@@ -1,5 +1,3 @@
-import time
-
 from .gmail_client import Email, GmailClientInterface
 
 
@@ -15,7 +13,7 @@ class EmailProcessor:
             subject_lower = email.subject.lower()
             if all(keyword in subject_lower for keyword in self.required_keywords):
                 filtered.append(email)
-        return filtered 
+        return filtered
 
     def extract_name_from_email(self, email_body: str) -> str | None:
         patterns = [
@@ -28,19 +26,20 @@ class EmailProcessor:
 
         # implement name extraction logic
         import re
+
         for pattern in patterns:
             match = re.search(pattern, email_body, re.IGNORECASE)
             if match:
                 name = match.group(1).strip()
-                
-                name = re.sub(r'[^A-Za-z\s]', '', name)
+
+                name = re.sub(r"[^A-Za-z\s]", "", name)
                 if name:
                     return name
-        
+
         lines = email_body.strip().splitlines()
         for line in reversed(lines):
             line = line.strip()
-            if re.match(r'^[A-Za-z]+\s+[A-Za-z]+$', line):
+            if re.match(r"^[A-Za-z]+\s+[A-Za-z]+$", line):
                 return line
 
         return None
@@ -66,22 +65,22 @@ We will get back to you within 5-7 business days with an update on your applicat
 Best regards,
 Hiring Team"""
 
-    def process_emails(self) -> dict:
+    def process_emails(self) -> dict[str, int]:
         # Do not modify this block
         emails = []
         filtered_emails = []
         responses_sent = 0
         # end of non-modifiable block
 
-        
         # implement email processing logic.
         emails = self.gmail_client.fetch_emails()
         filtered_emails = self.filter_emails(emails)
 
         import threading
+
         results = [False] * len(filtered_emails)
 
-        def send_email_task(idx, email):
+        def send_email_task(idx: int, email: Email) -> None:
             name = self.extract_name_from_email(email.body)
             response_body = self.generate_response(name)
             subject = f"Re: {email.subject}"
@@ -97,8 +96,6 @@ Hiring Team"""
             t.join()
         responses_sent = sum(results)
 
-        
-        
         # Do not modify this block
         return {
             "total_emails": len(emails),

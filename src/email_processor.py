@@ -1,4 +1,3 @@
-
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -74,7 +73,7 @@ class EmailProcessor:
         emails = self.gmail_client.fetch_emails()
         filtered_emails = self.filter_emails(emails)
 
-        #precompute payloads
+        # precompute payloads
         to_send: list[tuple[str, str, str]] = []
         for e in filtered_emails:
             name = self.extract_name_from_email(e.body)
@@ -86,12 +85,13 @@ class EmailProcessor:
         if to_send:
             max_workers = min(64, len(to_send))
             with ThreadPoolExecutor(max_workers=max_workers) as pool:
-                futures = [pool.submit(self.gmail_client.send_email, to, subj, body)
-                           for(to, subj, body) in to_send]
+                futures = [
+                    pool.submit(self.gmail_client.send_email, to, subj, body)
+                    for (to, subj, body) in to_send
+                ]
                 for fut in as_completed(futures):
                     if fut.result():
                         responses_sent += 1
-
 
         # Do not modify this block
         return {

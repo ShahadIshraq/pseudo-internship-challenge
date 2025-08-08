@@ -19,15 +19,14 @@ class EmailProcessor:
 
     def extract_name_from_email(self, email_body: str) -> str | None:
         patterns = [
-            r"Best regards,\s*([\w\s]+)",
-            r"Sincerely,\s*([\w\s]+)",
-            r"Thanks,\s*([\w\s]+)",
-            r"Regards,\s*([\w\s]+)",
-            r"Best,\s*([\w\s]+)",
-            r"Thank you,\s*([\w\s]+)",
-            r"Kind regards,\s*([\w\s]+)",
+            r"Best regards,\s*([A-Za-z\s]+)",
+            r"Sincerely,\s*([A-Za-z\s]+)",
+            r"Thanks,\s*([A-Za-z\s]+)",
+            r"Regards,\s*([A-Za-z\s]+)",
+            r"Best,\s*([A-Za-z\s]+)",
+            r"Thank you,\s*([A-Za-z\s]+)",
+            r"Kind regards,\s*([A-Za-z\s]+)",
         ]
-
 
         # implement name extraction logic
         for pattern in patterns:

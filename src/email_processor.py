@@ -1,5 +1,6 @@
 import time
 import re
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from .gmail_client import Email, GmailClientInterface
 
 
@@ -65,17 +66,27 @@ Hiring Team"""
         responses_sent = 0
         # end of non-modifiable block
 
-        
-        # implement email processing logic.
-        for email in filtered_emails:
-            name = self.extract_name_from_email(email.body)
-            response_body = self.generate_response(name)
-            subject = f"Re: {email.subject}"
-            sent = self.gmail_client.send_email(email.sender, subject, response_body)
-            if sent:
-                responses_sent += 1
-            
-        
+        def send_single_response(email: Email) -> bool:
+            try:
+                name = self.extract_name_from_email(email.body)
+                response_body = self.generate_response(name)
+                subject_reply = f"Re: {email.subject}"
+                return self.gmail_client.send_email(
+                    to=email.sender,
+                    subject=subject_reply,
+                    body=response_body,
+                )
+            except Exception:
+                # Optionally log exception here
+                return False
+
+        with ThreadPoolExecutor(max_workers=50) as executor:
+            futures = [executor.submit(send_single_response, email) for email in filtered_emails]
+
+            for future in as_completed(futures):
+                if future.result():
+                    responses_sent += 1
+
         # Do not modify this block
         return {
             "total_emails": len(emails),

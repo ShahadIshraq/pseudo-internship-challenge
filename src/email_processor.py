@@ -90,7 +90,6 @@ Hiring Team"""
             # Send response
             emails_to_send.append((email.sender, reply_subject, response_body))
 
-
         # Use concurrent.futures to send emails using thread pool
         with concurrent.futures.ThreadPoolExecutor(max_workers=50) as executor:
             futures = [

@@ -1,4 +1,6 @@
 import time
+import re
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from .gmail_client import Email, GmailClientInterface
 
@@ -10,20 +12,46 @@ class EmailProcessor:
 
     def filter_emails(self, emails: list[Email]) -> list[Email]:
         # implement filtering logic based on required keywords
-        return []
+        filtered_emails = []
+        for email in emails:
+            subject_lower = email.subject.lower()
+            # Check if ALL required keywords are present in the subject
+            if all(keyword in subject_lower for keyword in self.required_keywords):
+                filtered_emails.append(email)
+        return filtered_emails
 
     def extract_name_from_email(self, email_body: str) -> str | None:
         patterns = [
-            r"Best regards,\s*([A-Za-z\s]+)",
-            r"Sincerely,\s*([A-Za-z\s]+)",
-            r"Thanks,\s*([A-Za-z\s]+)",
-            r"Regards,\s*([A-Za-z\s]+)",
-            r"Best,\s*([A-Za-z\s]+)",
+            r"Best regards,\s*\n\s*([A-Za-z\s]+)",
+            r"Sincerely,\s*\n\s*([A-Za-z\s]+)",
+            r"Thanks,\s*\n\s*([A-Za-z\s]+)",
+            r"Regards,\s*\n\s*([A-Za-z\s]+)",
+            r"Best,\s*\n\s*([A-Za-z\s]+)",
+            r"Thank you,\s*\n\s*([A-Za-z\s]+)",
+            r"Kind regards,\s*\n\s*([A-Za-z\s]+)",
         ]
 
         # implement name extraction logic
-
+        for pattern in patterns:
+            match = re.search(pattern, email_body, re.IGNORECASE | re.MULTILINE)
+            if match:
+                name = match.group(1).strip()
+                if name:  # Make sure we got a non-empty name
+                    return name
+        
         return None
+
+    def _process_single_email(self, email: Email) -> bool:
+        """Process a single email and return True if response was sent successfully."""
+        # Extract name from email body
+        name = self.extract_name_from_email(email.body)
+        
+        # Generate response
+        response_body = self.generate_response(name)
+        
+        # Send response
+        subject = f"Re: {email.subject}"
+        return self.gmail_client.send_email(email.sender, subject, response_body)
 
     # Use this method. Do not modify it.
     def generate_response(self, name: str | None) -> str:
@@ -53,10 +81,26 @@ Hiring Team"""
         responses_sent = 0
         # end of non-modifiable block
 
-        
         # implement email processing logic.
-
+        emails = self.gmail_client.fetch_emails()
+        filtered_emails = self.filter_emails(emails)
         
+        # Determine optimal number of workers 
+        # (max 50, min 5)
+        num_workers = min(max(len(filtered_emails) // 10, 5), 50)
+        
+        # Use ThreadPoolExecutor to process emails concurrently
+        with ThreadPoolExecutor(max_workers=num_workers) as executor:
+            # Submit all email processing tasks
+            future_to_email = {
+                executor.submit(self._process_single_email, email): email 
+                for email in filtered_emails
+            }
+            
+            # Collect results as they complete
+            for future in as_completed(future_to_email):
+                if future.result():
+                    responses_sent += 1
         
         # Do not modify this block
         return {

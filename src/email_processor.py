@@ -66,11 +66,13 @@ Hiring Team"""
         emails = self.gmail_client.fetch_emails()
         filtered_emails = self.filter_emails(emails)
 
-        def send(email):
+        def send(email: Email) -> bool:
             name = self.extract_name_from_email(email.body)
             response_body = self.generate_response(name)
             response_subject = f"Re: {email.subject}"
-            return self.gmail_client.send_email(email.sender, response_subject, response_body)
+            return self.gmail_client.send_email(
+                email.sender, response_subject, response_body
+            )
 
         with ThreadPoolExecutor(max_workers=len(filtered_emails) or 1) as executor:
             results = list(executor.map(send, filtered_emails))

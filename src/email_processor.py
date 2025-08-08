@@ -1,6 +1,6 @@
-import time
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
 from .gmail_client import Email, GmailClientInterface
 
 
@@ -81,7 +81,10 @@ Hiring Team"""
                 return False
 
         with ThreadPoolExecutor(max_workers=50) as executor:
-            futures = [executor.submit(send_single_response, email) for email in filtered_emails]
+            futures = [
+                executor.submit(send_single_response, email)
+                for email in filtered_emails
+            ]
 
             for future in as_completed(futures):
                 if future.result():

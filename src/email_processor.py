@@ -1,4 +1,3 @@
-import time
 
 from .gmail_client import Email, GmailClientInterface
 
@@ -18,7 +17,7 @@ class EmailProcessor:
 
     def extract_name_from_email(self, email_body: str) -> str | None:
         import re
-        
+
         patterns = [
             r"Best regards,\s*\n?\s*([A-Za-z\s]+)",
             r"Sincerely,\s*\n?\s*([A-Za-z\s]+)",
@@ -35,7 +34,7 @@ class EmailProcessor:
                 name = match.group(1).strip()
                 if name:
                     return name
-        
+
         return None
 
     # Use this method. Do not modify it.
@@ -67,21 +66,21 @@ Hiring Team"""
         # end of non-modifiable block
 
         emails = self.gmail_client.fetch_emails()
-        
+
         # Filter emails based on required keywords
         filtered_emails = self.filter_emails(emails)
-        
+
         for email in filtered_emails:
             name = self.extract_name_from_email(email.body)
-            
+
             response_body = self.generate_response(name)
-            
+
             subject = f"Re: {email.subject}"
             success = self.gmail_client.send_email(email.sender, subject, response_body)
-            
+
             if success:
                 responses_sent += 1
-        
+
         # Do not modify this block
         return {
             "total_emails": len(emails),

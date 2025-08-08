@@ -10,7 +10,12 @@ class EmailProcessor:
 
     def filter_emails(self, emails: list[Email]) -> list[Email]:
         # implement filtering logic based on required keywords
-        return []
+        filtered = []
+        for email in emails:
+            subject_lower = email.subject.lower()
+            if all(keyword in subject_lower for keyword in self.required_keywords):
+                filtered.append(email)
+        return filtered
 
     def extract_name_from_email(self, email_body: str) -> str | None:
         patterns = [

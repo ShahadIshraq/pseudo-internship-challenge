@@ -1,8 +1,8 @@
-import time
 
-from .gmail_client import Email, GmailClientInterface
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
+from .gmail_client import Email, GmailClientInterface
 
 
 class EmailProcessor:
@@ -16,8 +16,8 @@ class EmailProcessor:
         filtered = []
         # traversing through all emails
         for email in emails:
-            # subject can be in uppercase or lowercase so avoiding the uppercase issues make it lower case first 
-            subject_lower = email.subject.lower();
+            # subject can be in uppercase or lowercase so avoiding the uppercase issues make it lower case first
+            subject_lower = email.subject.lower()
             # checking the keywords are matching with the require keywords or not if matched then adding the email in filtered array
             if all(k in subject_lower for k in self.required_keywords):
                 filtered.append(email)
@@ -38,7 +38,7 @@ class EmailProcessor:
         for pattern in patterns:
             name = re.search(pattern, email_body)
             if name:
-                return name.group(1).strip();
+                return name.group(1).strip()
         return None
 
     # Use this method. Do not modify it.
@@ -68,20 +68,20 @@ class EmailProcessor:
         filtered_emails = []
         responses_sent = 0
         # end of non-modifiable block
-        
+
         # implement email processing logic.
-        # fetch + filter 
+        # fetch + filter
         emails = self.gmail_client.fetch_emails()
         filtered_emails = self.filter_emails(emails)
 
-        #precompute payloads 
+        #precompute payloads
         to_send: list[tuple[str, str, str]] = []
         for e in filtered_emails:
-            name = self.extract_name_from_email(e.body);
+            name = self.extract_name_from_email(e.body)
             response = self.generate_response(name)
             subject = f"Re: {e.subject}"
             to_send.append((e.sender, subject, response))
-            
+
         # concurrent send (Overlap mock's 0,2sec sleep time)
         if to_send:
             max_workers = min(64, len(to_send))
@@ -90,9 +90,9 @@ class EmailProcessor:
                            for(to, subj, body) in to_send]
                 for fut in as_completed(futures):
                     if fut.result():
-                        responses_sent += 1 
-        
-        
+                        responses_sent += 1
+
+
         # Do not modify this block
         return {
             "total_emails": len(emails),

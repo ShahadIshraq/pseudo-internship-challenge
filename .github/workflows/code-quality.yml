@@ -1,7 +1,10 @@
 name: Code Quality
 
 on:
-  pull_request:
+  # pull_request:
+  #   branches: [ batch-0 ]
+
+  push:
     branches: [ batch-0 ]
 
 jobs:

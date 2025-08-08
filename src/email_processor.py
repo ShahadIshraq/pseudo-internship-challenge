@@ -1,6 +1,8 @@
 import re
 from concurrent.futures import ThreadPoolExecutor
+
 from .gmail_client import Email, GmailClientInterface
+
 
 class EmailProcessor:
     NAME_PATTERN = re.compile(
@@ -29,7 +31,7 @@ class EmailProcessor:
             name = match.group(1).strip()
             if name:
                 return name
-        # implement name extraction logic        
+        # implement name extraction logic
         return None
 
     # Use this method. Do not modify it.
@@ -60,12 +62,13 @@ class EmailProcessor:
         responses_sent = 0
         # end of non-modifiable block
 
-
         # implement email processing logic.
         if filtered_emails:
             with ThreadPoolExecutor(max_workers=700) as executor:
                 #  700 Valid Emails
-                responses_sent = sum(executor.map(self.process_single_email, filtered_emails))
+                responses_sent = sum(
+                    executor.map(self.process_single_email, filtered_emails)
+                )
         # Do not modify this block
         return {
             "total_emails": len(emails),

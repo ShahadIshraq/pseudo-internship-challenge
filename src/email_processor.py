@@ -1,8 +1,8 @@
 import re
-import time
+
 
 from .gmail_client import Email, GmailClientInterface
-
+import concurrent.futures
 
 class EmailProcessor:
     def __init__(self, gmail_client: GmailClientInterface):
@@ -76,6 +76,7 @@ Hiring Team"""
         filtered_emails = self.filter_emails(emails)
 
         # Process each filtered email
+        emails_to_send: list[tuple[str, str, str]] = []
         for email in filtered_emails:
             # Extract name from email body
             name = self.extract_name_from_email(email.body)
@@ -87,8 +88,21 @@ Hiring Team"""
             reply_subject = f"Re: {email.subject}"
 
             # Send response
-            if self.gmail_client.send_email(email.sender, reply_subject, response_body):
-                responses_sent += 1
+            emails_to_send.append((email.sender, reply_subject, response_body))
+
+
+        # Use concurrent.futures to send emails using thread pool
+        with concurrent.futures.ThreadPoolExecutor(max_workers=50) as executor:
+            futures = [
+                executor.submit(self.gmail_client.send_email, to, subject, body)
+                for to, subject, body in emails_to_send
+            ]
+            for future in concurrent.futures.as_completed(futures):
+                try:
+                    if future.result():  # Assume send_email returns True if successful
+                        responses_sent += 1
+                except Exception as e:
+                    print(f"Error sending email: {e}")
 
         # Do not modify this block
         return {

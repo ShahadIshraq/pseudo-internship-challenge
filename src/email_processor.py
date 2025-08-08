@@ -1,5 +1,5 @@
 import re
-import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from .gmail_client import Email, GmailClientInterface
 
@@ -72,8 +72,8 @@ We will get back to you within 5-7 business days with an update on your applicat
 Best regards,
 Hiring Team"""
 
-    def _send_email_thread(self, email: Email, responses_sent_counter: list) -> None:
-        """Helper method to send email in a separate thread"""
+    def _send_single_email(self, email: Email) -> bool:
+        """Helper method to send a single email"""
         try:
             # Extract name
             name = self.extract_name_from_email(email.body)
@@ -82,12 +82,11 @@ Hiring Team"""
             success = self.gmail_client.send_email(
                 to=email.sender, subject=response_subject, body=response_body
             )
-
-            if success:
-                responses_sent_counter[0] += 1
+            return success
         except Exception as e:
             # Log any errors that occur during email sending
             print(f"Error sending email to {email.sender}: {e}")
+            return False
 
     def process_emails(self) -> dict:
         # Do not modify this block
@@ -100,24 +99,41 @@ Hiring Team"""
 
         emails = self.gmail_client.fetch_emails()
         filtered_emails = self.filter_emails(emails)
-        responses_sent_counter = [0]
 
-        # Create and start threads for each email
-        threads = []
-        for email in filtered_emails:
-            thread = threading.Thread(
-                target=self._send_email_thread, args=(email, responses_sent_counter)
-            )
-            thread.daemon = True  # Threads will die when main thread exits
-            threads.append(thread)
-            thread.start()
+        # Calculate optimal number of workers dynamically
+        # Performance target: 5 seconds
+        # Each email takes 200ms
+        # Required workers = (filtered_emails * 200ms) / 5000ms
+        # Add some buffer for safety and overhead
+        if filtered_emails:
+            time_per_email_ms = 200
+            target_time_ms = 5000  # 5 seconds
+            required_workers = (
+                len(filtered_emails) * time_per_email_ms
+            ) / target_time_ms
+            # Add 20% buffer for safety and overhead
+            optimal_workers = int(required_workers * 1.2)
+            max_workers = max(1, min(100, optimal_workers))
+        else:
+            max_workers = 1
 
-        # waiting for all threads to complete before returning
-        for thread in threads:
-            thread.join()
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            # Submit all email sending tasks
+            future_to_email = {
+                executor.submit(self._send_single_email, email): email
+                for email in filtered_emails
+            }
 
-        # updating the responses_sent variable with the final count
-        responses_sent = responses_sent_counter[0]
+            responses_sent = 0
+            for future in as_completed(future_to_email):
+                email = future_to_email[future]
+                try:
+                    if future.result():
+                        responses_sent += 1
+                except Exception as e:
+                    print(
+                        f"Exception occurred while processing email to {email.sender}: {e}"
+                    )
 
         # Do not modify this block
         return {

@@ -1,9 +1,7 @@
-import time
 import re
-import threading
+from concurrent.futures import ThreadPoolExecutor
 
 from .gmail_client import Email, GmailClientInterface
-from concurrent.futures import ThreadPoolExecutor
 
 
 class EmailProcessor:
@@ -82,14 +80,13 @@ Hiring Team"""
                 # Create all the tasks first
                 tasks = {}
                 for email in filtered_emails:
+
                     def process_one_email(e=email):
                         name = self.extract_name_from_email(e.body)
                         response_body = self.generate_response(name)
                         response_subject = f"Re: {e.subject}"
                         return self.gmail_client.send_email(
-                            to=e.sender,
-                            subject=response_subject,
-                            body=response_body
+                            to=e.sender, subject=response_subject, body=response_body
                         )
 
                     # Submit the task

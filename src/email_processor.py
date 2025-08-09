@@ -1,28 +1,25 @@
 import re
-import time
 from concurrent.futures import ThreadPoolExecutor
-from typing import List, Optional
 
-from .gmail_client import Email, GmailClient 
+from .gmail_client import Email, GmailClient
 
 
 class EmailProcessor:
     def __init__(self, gmail_client: GmailClient):
         self.gmail_client = gmail_client
         self.required_keywords = ["pseudo", "internship", "interest"]
-    
-    
-    def filter_emails(self, emails: List[Email]) -> List[Email]:
+
+    def filter_emails(self, emails: list[Email]) -> list[Email]:
         # implement filtering logic based on required keywords
 
-        filtered_emails: List[Email] = []
+        filtered_emails: list[Email] = []
         for email in emails:
             subject = email.subject.lower()
             if all(keyword in subject for keyword in self.required_keywords):
                 filtered_emails.append(email)
         return filtered_emails
 
-    def extract_name_from_email(self, email_body: str) -> Optional[str]:
+    def extract_name_from_email(self, email_body: str) -> str | None:
         patterns = [
             r"Best regards,\s*([A-Za-z\s]+)",
             r"Sincerely,\s*([A-Za-z\s]+)",
@@ -34,7 +31,7 @@ class EmailProcessor:
         ]
 
         # implement name extraction logic
-        
+
         for pattern in patterns:
             match = re.search(pattern, email_body, flags=re.IGNORECASE)
             if match:
@@ -45,7 +42,7 @@ class EmailProcessor:
         return None
 
     # Use this method. Do not modify it.
-    def generate_response(self, name: Optional[str]) -> str:
+    def generate_response(self, name: str | None) -> str:
         if name:
             return f"""Dear {name},
 

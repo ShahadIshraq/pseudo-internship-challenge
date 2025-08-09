@@ -1,7 +1,6 @@
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import List, Optional
 
 
 @dataclass
@@ -16,7 +15,7 @@ class Email:
 # Do not modify the GmailClientInterface or MockGmailClient
 class GmailClientInterface(ABC):
     @abstractmethod
-    def fetch_emails(self) -> List[Email]:
+    def fetch_emails(self) -> list[Email]:
         pass
 
     @abstractmethod
@@ -25,10 +24,10 @@ class GmailClientInterface(ABC):
 
 
 class GmailClient(GmailClientInterface):
-    def __init__(self, credentials_path: Optional[str] = None) -> None:
+    def __init__(self, credentials_path: str | None = None) -> None:
         self.credentials_path = credentials_path
 
-    def fetch_emails(self) -> List[Email]:
+    def fetch_emails(self) -> list[Email]:
         raise NotImplementedError("Gmail client not implemented yet")
 
     def send_email(self, to: str, subject: str, body: str) -> bool:
@@ -36,11 +35,11 @@ class GmailClient(GmailClientInterface):
 
 
 class MockGmailClient(GmailClientInterface):
-    def __init__(self, mock_emails: Optional[List[Email]] = None) -> None:
+    def __init__(self, mock_emails: list[Email] | None = None) -> None:
         self.mock_emails = mock_emails or []
-        self.sent_emails: List[dict] = []
+        self.sent_emails: list[dict] = []
 
-    def fetch_emails(self) -> List[Email]:
+    def fetch_emails(self) -> list[Email]:
         time.sleep(0.2)  # 200ms delay
         return self.mock_emails
 

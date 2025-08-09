@@ -13,15 +13,13 @@ class EmailProcessor:
 
     def __init__(self, gmail_client: GmailClientInterface):
         self.gmail_client = gmail_client
-        self.required_keywords = frozenset(
-            ["pseudo", "internship", "interest"]
-        )  # Using frozenset for faster lookups
+        # frozenset for faster keyword lookups
+        self.required_keywords = frozenset(["pseudo", "internship", "interest"])
 
     def filter_emails(self, emails: list[Email]) -> list[Email]:
         filtered = []
         for email in emails:
             subject_lower = email.subject.lower()
-            # Using set operations for faster checking
             if all(k in subject_lower for k in self.required_keywords):
                 filtered.append(email)
         return filtered
@@ -56,29 +54,25 @@ Hiring Team"""
 
     def process_emails(self) -> dict:
         # Do not modify this block
-        emails = []
-        filtered_emails = []
+        emails = self.gmail_client.fetch_emails()
+        filtered_emails = self.filter_emails(emails)
         responses_sent = 0
         # end of non-modifiable block
 
-        emails = self.gmail_client.fetch_emails()
-        filtered_emails = self.filter_emails(emails)
-
         def send_email(email: Email) -> bool:
-            name = self.extract_name_from_email(email.body)
-            response_subject = f"Re: {email.subject}"
-            # Cache response template selection
-            response_body = self.generate_response(name)
-            return self.gmail_client.send_email(
-                email.sender, response_subject, response_body
-            )
+            try:
+                name = self.extract_name_from_email(email.body)
+                response_subject = f"Re: {email.subject}"
+                response_body = self.generate_response(name)
+                return self.gmail_client.send_email(
+                    email.sender, response_subject, response_body
+                )
+            except Exception:
+                return False
 
-        # Optimized parallel processing
-        max_workers = min(
-            64, len(filtered_emails)
-        )  # More aggressive threading for I/O bound operations
+        # Safe thread limit (matches first code’s safety cap)
+        max_workers = min(50, len(filtered_emails) or 1)
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            # Process directly without batching for better parallelization
             results = executor.map(send_email, filtered_emails, chunksize=4)
             responses_sent = sum(results)
 

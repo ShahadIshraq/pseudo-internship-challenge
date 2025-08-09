@@ -5,7 +5,7 @@ from .gmail_client import Email, GmailClientInterface
 
 
 class EmailProcessor:
-    MAX_WORKERS = 50
+    MAX_WORKERS = 50  # concurrency level for sending emails
     NAME_PATTERNS = [
         r"Best regards,\s*([A-Za-z\s]+)",
         r"Sincerely,\s*([A-Za-z\s]+)",
@@ -15,12 +15,13 @@ class EmailProcessor:
         r"Thank you,\s*([A-Za-z\s]+)",
         r"Kind regards,\s*([A-Za-z\s]+)",
     ]
-        
+
     def __init__(self, gmail_client: GmailClientInterface):
         self.gmail_client = gmail_client
         self.required_keywords = ["pseudo", "internship", "interest"]
 
     def filter_emails(self, emails: list[Email]) -> list[Email]:
+        """Filter emails whose subject contains all required keywords."""
         # implement filtering logic based on required keywords
         filtered_emails = []
         for email in emails:
@@ -30,6 +31,7 @@ class EmailProcessor:
         return filtered_emails
 
     def extract_name_from_email(self, email_body: str) -> str | None:
+        """Extract sender's name from the email body using known signature patterns."""
         # implement name extraction logic
         for pattern in self.NAME_PATTERNS:
             match = re.search(pattern, email_body, flags=re.IGNORECASE)
@@ -59,6 +61,7 @@ Best regards,
 Hiring Team"""
 
     def process_emails(self) -> dict:
+        """Fetch, filter, and respond to emails concurrently."""
         # Do not modify this block
         emails = []
         filtered_emails = []

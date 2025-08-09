@@ -72,16 +72,29 @@ Hiring Team"""
         emails = self.gmail_client.fetch_emails()
         filtered_emails = self.filter_emails(emails)
 
+        import threading
+        responses_sent_lock = threading.Lock()
+        threads = []
 
-        for email in filtered_emails:
-            name = self.extract_name_from_email(email.body)
-            response = self.generate_response(name)
-            sent = self.gmail_client.send_email(email.sender, "Re: " + email.subject, response)
-            
-            if sent:
-                responses_sent += 1
+        def process_batch(batch):
+            nonlocal responses_sent
+            for email in batch:
+                name = self.extract_name_from_email(email.body)
+                response = self.generate_response(name)
+                sent = self.gmail_client.send_email(email.sender, "Re: " + email.subject, response)
+                if sent:
+                    with responses_sent_lock:
+                        responses_sent += 1
 
-        
+        batch_size = 20
+        for i in range(0, len(filtered_emails), batch_size):
+            batch = filtered_emails[i:i+batch_size]
+            t = threading.Thread(target=process_batch, args=(batch,))
+            threads.append(t)
+            t.start()
+
+        for t in threads:
+            t.join()
         
         # Do not modify this block
         return {

@@ -1,3 +1,4 @@
+import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
@@ -39,8 +40,10 @@ class MockGmailClient(GmailClientInterface):
         self.sent_emails: list[dict[str, str]] = []
 
     def fetch_emails(self) -> list[Email]:
+        time.sleep(0.2)  # 200ms delay
         return self.mock_emails
 
     def send_email(self, to: str, subject: str, body: str) -> bool:
+        time.sleep(0.2)  # 200ms delay
         self.sent_emails.append({"to": to, "subject": subject, "body": body})
         return True

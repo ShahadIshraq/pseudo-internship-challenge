@@ -1,5 +1,4 @@
 import re
-import time
 
 from .gmail_client import Email, GmailClientInterface
 
@@ -74,7 +73,7 @@ Hiring Team"""
                 to=email.sender, subject=f"Re: {email.subject}", body=response
             )
             responses_sent += 1
-        
+
         # Do not modify this block
         return {
             "total_emails": len(emails),

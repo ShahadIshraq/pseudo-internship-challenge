@@ -1,16 +1,23 @@
-import time
+import re
+from concurrent.futures import ThreadPoolExecutor
 
-from .gmail_client import Email, GmailClientInterface
+from .gmail_client import Email, GmailClient
 
 
 class EmailProcessor:
-    def __init__(self, gmail_client: GmailClientInterface):
+    def __init__(self, gmail_client: GmailClient):
         self.gmail_client = gmail_client
         self.required_keywords = ["pseudo", "internship", "interest"]
 
     def filter_emails(self, emails: list[Email]) -> list[Email]:
         # implement filtering logic based on required keywords
-        return []
+
+        filtered_emails: list[Email] = []
+        for email in emails:
+            subject = email.subject.lower()
+            if all(keyword in subject for keyword in self.required_keywords):
+                filtered_emails.append(email)
+        return filtered_emails
 
     def extract_name_from_email(self, email_body: str) -> str | None:
         patterns = [
@@ -19,9 +26,18 @@ class EmailProcessor:
             r"Thanks,\s*([A-Za-z\s]+)",
             r"Regards,\s*([A-Za-z\s]+)",
             r"Best,\s*([A-Za-z\s]+)",
+            r"Kind regards,\s*([A-Za-z\s]+)",
+            r"Thank you,\s*([A-Za-z\s]+)",
         ]
 
         # implement name extraction logic
+
+        for pattern in patterns:
+            match = re.search(pattern, email_body, flags=re.IGNORECASE)
+            if match:
+                name = match.group(1).strip()
+                if name:
+                    return name
 
         return None
 
@@ -53,11 +69,20 @@ Hiring Team"""
         responses_sent = 0
         # end of non-modifiable block
 
-        
-        # implement email processing logic.
+        emails = self.gmail_client.fetch_emails()
+        filtered_emails = self.filter_emails(emails)
 
-        
-        
+        def send_email_task(email: Email) -> bool:
+            name = self.extract_name_from_email(email.body)
+            response = self.generate_response(name)
+            return self.gmail_client.send_email(
+                to=email.sender, subject=f"Re: {email.subject}", body=response
+            )
+
+        with ThreadPoolExecutor(max_workers=50) as executor:
+            results = executor.map(send_email_task, filtered_emails)
+            responses_sent = sum(1 for result in results if result)
+
         # Do not modify this block
         return {
             "total_emails": len(emails),

@@ -37,7 +37,7 @@ class GmailClient(GmailClientInterface):
 class MockGmailClient(GmailClientInterface):
     def __init__(self, mock_emails: list[Email] | None = None) -> None:
         self.mock_emails = mock_emails or []
-        self.sent_emails: list[dict[str, str]] = []
+        self.sent_emails: list[dict] = []
 
     def fetch_emails(self) -> list[Email]:
         time.sleep(0.2)  # 200ms delay

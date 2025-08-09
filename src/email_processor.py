@@ -5,6 +5,17 @@ from .gmail_client import Email, GmailClientInterface
 
 
 class EmailProcessor:
+    MAX_WORKERS = 50
+    NAME_PATTERNS = [
+        r"Best regards,\s*([A-Za-z\s]+)",
+        r"Sincerely,\s*([A-Za-z\s]+)",
+        r"Thanks,\s*([A-Za-z\s]+)",
+        r"Regards,\s*([A-Za-z\s]+)",
+        r"Best,\s*([A-Za-z\s]+)",
+        r"Thank you,\s*([A-Za-z\s]+)",
+        r"Kind regards,\s*([A-Za-z\s]+)",
+    ]
+        
     def __init__(self, gmail_client: GmailClientInterface):
         self.gmail_client = gmail_client
         self.required_keywords = ["pseudo", "internship", "interest"]
@@ -19,19 +30,9 @@ class EmailProcessor:
         return filtered_emails
 
     def extract_name_from_email(self, email_body: str) -> str | None:
-        patterns = [
-            r"Best regards,\s*([A-Za-z\s]+)",
-            r"Sincerely,\s*([A-Za-z\s]+)",
-            r"Thanks,\s*([A-Za-z\s]+)",
-            r"Regards,\s*([A-Za-z\s]+)",
-            r"Best,\s*([A-Za-z\s]+)",
-            r"Thank you,\s*([A-Za-z\s]+)",
-            r"Kind regards,\s*([A-Za-z\s]+)",
-        ]
-
         # implement name extraction logic
-        for pattern in patterns:
-            match = re.search(pattern, email_body)
+        for pattern in self.NAME_PATTERNS:
+            match = re.search(pattern, email_body, flags=re.IGNORECASE)
             if match:
                 return match.group(1).strip()
         return None
@@ -77,7 +78,7 @@ Hiring Team"""
 
         # use ThreadPoolExecutor to send responses concurrently
         futures = []
-        with ThreadPoolExecutor(max_workers=50) as executor:
+        with ThreadPoolExecutor(max_workers=self.MAX_WORKERS) as executor:
             for email in filtered_emails:
                 name = self.extract_name_from_email(email.body)
                 response_body = self.generate_response(name)
@@ -90,10 +91,13 @@ Hiring Team"""
                 )
                 futures.append(future)
 
-            # proecess results as they complete
+            # process results as they complete
             for future in as_completed(futures):
-                if future.result():
-                    responses_sent += 1
+                try:
+                    if future.result():
+                        responses_sent += 1
+                except Exception as e:
+                    print(f"[Error] Failed to send email: {e}")
 
         # Do not modify this block
         return {

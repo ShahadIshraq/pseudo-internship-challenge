@@ -1,4 +1,6 @@
+import re
 import time
+import concurrent.futures
 
 from .gmail_client import Email, GmailClientInterface
 
@@ -10,7 +12,20 @@ class EmailProcessor:
 
     def filter_emails(self, emails: list[Email]) -> list[Email]:
         # implement filtering logic based on required keywords
-        return []
+        filtered_emails = []
+
+        def has_all_required_keywords(email):
+            subject_upper = email.subject.upper()
+            return all(keyword.upper() in subject_upper for keyword in self.required_keywords)
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=50) as executor:
+            results = list(executor.map(has_all_required_keywords, emails))
+
+        for email, is_valid in zip(emails, results):
+            if is_valid:
+                filtered_emails.append(email)
+
+        return filtered_emails
 
     def extract_name_from_email(self, email_body: str) -> str | None:
         patterns = [
@@ -22,6 +37,14 @@ class EmailProcessor:
         ]
 
         # implement name extraction logic
+        for pattern in patterns:
+            match = re.search(pattern, email_body)
+            if match:
+                return match.group(1).strip()
+            
+        match = re.search(r"\n\s*([A-Za-z\s]+),\s*\n\s*([A-Za-z\s]+)", email_body)
+        if match:
+            return match.group(2).strip()
 
         return None
 
@@ -55,6 +78,19 @@ Hiring Team"""
 
         
         # implement email processing logic.
+        emails = self.gmail_client.fetch_emails()
+        filtered_emails = self.filter_emails(emails)
+
+        def send_response(email):
+            name = self.extract_name_from_email(email.body)
+            response = self.generate_response(name)
+            if self.gmail_client.send_email(email.sender, "Re: " + email.subject, response):
+                return 1
+            return 0
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=50) as executor:
+            results = list(executor.map(send_response, filtered_emails))
+            responses_sent = sum(results)
 
         
         

@@ -81,7 +81,7 @@ Hiring Team"""
                 tasks = {}
                 for email in filtered_emails:
 
-                    def process_one_email(e=email):
+                    def process_one_email(e: Email = email) -> bool:
                         name = self.extract_name_from_email(e.body)
                         response_body = self.generate_response(name)
                         response_subject = f"Re: {e.subject}"

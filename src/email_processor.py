@@ -76,8 +76,8 @@ Hiring Team"""
                     subject=subject_reply,
                     body=response_body,
                 )
-            except Exception:
-                # Optionally log exception here
+            except Exception as e:
+                print(f"Error sending email to {email.sender}: {e}")
                 return False
 
         with ThreadPoolExecutor(max_workers=50) as executor:

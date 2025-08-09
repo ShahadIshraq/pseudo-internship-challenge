@@ -12,7 +12,8 @@ class EmailProcessor:
         # Compile regex patterns once and store them.
 
         self.name_extraction_patterns = [
-            re.compile(p, re.IGNORECASE | re.MULTILINE) for p in [
+            re.compile(p, re.IGNORECASE | re.MULTILINE)
+            for p in [
                 r"Best regards,\s*([A-Za-z\s]+)",
                 r"Sincerely,\s*([A-Za-z\s]+)",
                 r"Thanks,\s*([A-Za-z\s]+)",
@@ -45,7 +46,6 @@ class EmailProcessor:
                 if name:
                     return name
         return None
-
 
     def generate_response(self, name: str | None) -> str:
         if name:
@@ -88,7 +88,9 @@ Hiring Team"""
         num_emails_to_send = len(filtered_emails)
         if num_emails_to_send > 0:
             # This ensures all I/O operations (send_email) run in parallel.
-            with concurrent.futures.ThreadPoolExecutor(max_workers=num_emails_to_send) as executor:
+            with concurrent.futures.ThreadPoolExecutor(
+                max_workers=num_emails_to_send
+            ) as executor:
                 results = executor.map(process_and_send, filtered_emails)
                 responses_sent = sum(1 for result in results if result)
 

@@ -1,6 +1,6 @@
-import re
-import time
 import concurrent.futures
+import re
+
 from .gmail_client import Email, GmailClientInterface
 
 
@@ -8,9 +8,9 @@ class EmailProcessor:
     def __init__(self, gmail_client: GmailClientInterface):
         self.gmail_client = gmail_client
         self.required_keywords = ["pseudo", "internship", "interest"]
-        
+
         # Compile regex patterns once and store them.
-        
+
         self.name_extraction_patterns = [
             re.compile(p, re.IGNORECASE | re.MULTILINE) for p in [
                 r"Best regards,\s*([A-Za-z\s]+)",
@@ -46,7 +46,7 @@ class EmailProcessor:
                     return name
         return None
 
-    
+
     def generate_response(self, name: str | None) -> str:
         if name:
             return f"""Dear {name},

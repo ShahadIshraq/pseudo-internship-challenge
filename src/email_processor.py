@@ -1,47 +1,44 @@
-from concurrent.futures import Executor, ThreadPoolExecutor
-import time
 import re
+from concurrent.futures import ThreadPoolExecutor
+
 from .gmail_client import Email, GmailClientInterface
 
 
 class EmailProcessor:
     def __init__(self, gmail_client: GmailClientInterface):
         self.gmail_client = gmail_client
-        self.required_keywords = ["pseudo", "internship","interest"]
+        self.required_keywords = ["pseudo", "internship", "interest"]
 
     def filter_emails(self, emails: list[Email]) -> list[Email]:
         # implement filtering logic based on required keywords
-        filtered =[]
-        
-        for email in emails:    
+        filtered = []
+
+        for email in emails:
             txt = f"{email.subject}".lower()
             if all(keyword.lower() in txt for keyword in self.required_keywords):
                 filtered.append(email)
-                
+
         return filtered
-        
-       
 
     def extract_name_from_email(self, email_body: str) -> str | None:
         patterns = [
-        r"Best regards,\s*([A-Za-z\s]+)",
-        r"Sincerely,\s*([A-Za-z\s]+)",
-        r"Thanks,\s*([A-Za-z\s]+)", 
-        r"Regards,\s*([A-Za-z\s]+)",
-        r"Best,\s*([A-Za-z\s]+)",
-
-        r"Kind regards,\s*([A-Za-z\s]+)",
-        r"Thank you,\s*([A-Za-z\s]+)",
-        r"Yours truly,\s*([A-Za-z\s]+)",
-    ]
+            r"Best regards,\s*([A-Za-z\s]+)",
+            r"Sincerely,\s*([A-Za-z\s]+)",
+            r"Thanks,\s*([A-Za-z\s]+)",
+            r"Regards,\s*([A-Za-z\s]+)",
+            r"Best,\s*([A-Za-z\s]+)",
+            r"Kind regards,\s*([A-Za-z\s]+)",
+            r"Thank you,\s*([A-Za-z\s]+)",
+            r"Yours truly,\s*([A-Za-z\s]+)",
+        ]
 
         # implement name extraction logic
-        
+
         for pattern in patterns:
-            match =re.search(pattern,email_body,re.IGNORECASE) 
+            match = re.search(pattern, email_body, re.IGNORECASE)
             if match:
                 return match.group(1).strip()
-        
+
         return None
 
     # Use this method. Do not modify it.
@@ -71,10 +68,8 @@ Hiring Team"""
         return self.gmail_client.send_email(
             to=email.sender,
             subject="Re: Application Received for the Pseudo Internship Program",
-            body=response_body
+            body=response_body,
         )
-
-
 
     def process_emails(self) -> dict:
         # Do not modify this block
@@ -84,15 +79,14 @@ Hiring Team"""
         # end of non-modifiable block
 
         # implement email processing logic.
-        
+
         emails = self.gmail_client.fetch_emails()
         filtered_emails = self.filter_emails(emails=emails)
-        
+
         with ThreadPoolExecutor(max_workers=50) as executor:
-            res = list(executor.map(self.send_single_email,filtered_emails))
+            res = list(executor.map(self.send_single_email, filtered_emails))
             responses_sent = sum(res)
-        
-        
+
         # Do not modify this block
         return {
             "total_emails": len(emails),

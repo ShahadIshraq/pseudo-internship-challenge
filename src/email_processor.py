@@ -12,13 +12,16 @@ class EmailProcessor:
         filtered = []
 
         for email in emails:
-            if all(keyword in email.subject.lower() for keyword in self.required_keywords):
+            if all(
+                keyword in email.subject.lower() for keyword in self.required_keywords
+            ):
                 filtered.append(email)
 
         return filtered
 
     def extract_name_from_email(self, email_body: str) -> str | None:
         import re
+
         patterns = [
             r"Best regards,\s*([A-Za-z\s]+)",
             r"Sincerely,\s*([A-Za-z\s]+)",
@@ -72,22 +75,25 @@ Hiring Team"""
         filtered_emails = self.filter_emails(emails)
 
         import threading
+
         responses_sent_lock = threading.Lock()
         threads = []
 
-        def process_batch(batch):
+        def process_batch(batch: list[Email]) -> None:
             nonlocal responses_sent
             for email in batch:
                 name = self.extract_name_from_email(email.body)
                 response = self.generate_response(name)
-                sent = self.gmail_client.send_email(email.sender, "Re: " + email.subject, response)
+                sent = self.gmail_client.send_email(
+                    email.sender, "Re: " + email.subject, response
+                )
                 if sent:
                     with responses_sent_lock:
                         responses_sent += 1
 
         batch_size = 20
         for i in range(0, len(filtered_emails), batch_size):
-            batch = filtered_emails[i:i+batch_size]
+            batch = filtered_emails[i : i + batch_size]
             t = threading.Thread(target=process_batch, args=(batch,))
             threads.append(t)
             t.start()

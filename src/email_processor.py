@@ -67,7 +67,6 @@ Hiring Team"""
         responses_sent = 0
         # end of non-modifiable block
 
-        
         # implement email processing logic.
         emails = self.gmail_client.fetch_emails()
         filtered_emails = self.filter_emails(emails)
@@ -95,7 +94,7 @@ Hiring Team"""
 
         for t in threads:
             t.join()
-        
+
         # Do not modify this block
         return {
             "total_emails": len(emails),

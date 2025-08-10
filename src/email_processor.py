@@ -1,4 +1,5 @@
-import time
+import concurrent.futures
+import re
 
 from .gmail_client import Email, GmailClientInterface
 
@@ -10,7 +11,16 @@ class EmailProcessor:
 
     def filter_emails(self, emails: list[Email]) -> list[Email]:
         # implement filtering logic based on required keywords
-        return []
+        filtered_emails = []
+
+        for email in emails:
+            subject_upper = email.subject.upper()
+            if all(
+                keyword.upper() in subject_upper for keyword in self.required_keywords
+            ):
+                filtered_emails.append(email)
+
+        return filtered_emails
 
     def extract_name_from_email(self, email_body: str) -> str | None:
         patterns = [
@@ -22,6 +32,14 @@ class EmailProcessor:
         ]
 
         # implement name extraction logic
+        for pattern in patterns:
+            match = re.search(pattern, email_body)
+            if match:
+                return match.group(1).strip()
+
+        match = re.search(r"\n\s*([A-Za-z\s]+),\s*\n\s*([A-Za-z\s]+)", email_body)
+        if match:
+            return match.group(2).strip()
 
         return None
 
@@ -53,11 +71,23 @@ Hiring Team"""
         responses_sent = 0
         # end of non-modifiable block
 
-        
         # implement email processing logic.
+        emails = self.gmail_client.fetch_emails()
+        filtered_emails = self.filter_emails(emails)
 
-        
-        
+        def send_response(email: Email) -> int:
+            name = self.extract_name_from_email(email.body)
+            response = self.generate_response(name)
+            if self.gmail_client.send_email(
+                email.sender, "Re: " + email.subject, response
+            ):
+                return 1
+            return 0
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=50) as executor:
+            results = list(executor.map(send_response, filtered_emails))
+            responses_sent = sum(results)
+
         # Do not modify this block
         return {
             "total_emails": len(emails),

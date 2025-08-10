@@ -1,6 +1,7 @@
-from .gmail_client import Email, GmailClientInterface
-import re
 import concurrent.futures
+import re
+
+from .gmail_client import Email, GmailClientInterface
 
 
 class EmailProcessor:

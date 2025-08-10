@@ -74,7 +74,7 @@ Hiring Team"""
         emails = self.gmail_client.fetch_emails()
         filtered_emails = self.filter_emails(emails)
 
-        def send_response(email) -> int:
+        def send_response(email: Email) -> int:
             name = self.extract_name_from_email(email.body)
             response = self.generate_response(name)
             if self.gmail_client.send_email(email.sender, "Re: " + email.subject, response):

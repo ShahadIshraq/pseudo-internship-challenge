@@ -107,7 +107,11 @@ def contains_all_keywords_in_subject(email: Email, keywords: list[str]) -> bool:
     # HINT: Use the exact same logic as Exercise 3's contains_all_keywords function
     # but apply it to email.subject instead of a regular string
     
-    return None
+    # Check if ALL keywords exist in email.subject (case-insensitive)
+    for keyword in keywords:
+        if keyword.lower() not in email.subject.lower():
+            return False
+    return True
 
 
 def get_matching_email_ids(emails: list[Email], required_keywords: list[str]) -> list[str]:

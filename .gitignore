@@ -46,6 +46,7 @@ coverage.xml
 *.cover
 *.py,cover
 .hypothesis/
+/.mypy_cache/
 
 # OS
 .DS_Store
@@ -71,3 +72,5 @@ logs/
 *.tmp
 *.bak
 *.backup
+.venv/
+/.ruff_cache/

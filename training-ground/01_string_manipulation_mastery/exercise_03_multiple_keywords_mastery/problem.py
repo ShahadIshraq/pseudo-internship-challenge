@@ -119,7 +119,7 @@ def filter_emails_by_keywords(email_subjects: list[str], required_keywords: list
     """
     # TODO: Filter the email subjects using contains_all_keywords function
     # HINT: You need to check each email subject and only keep the ones that pass
-    filtered_subjects = [subject for subject in email_subjects if all(keyword.lower() in subject.lower for keyword in required_keywords)]
+    filtered_subjects = [subject for subject in email_subjects if all(keyword.lower() in subject.lower() for keyword in required_keywords)]
     
     return filtered_subjects
 

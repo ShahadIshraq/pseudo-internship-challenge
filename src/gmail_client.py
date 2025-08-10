@@ -35,7 +35,9 @@ class GmailClient(GmailClientInterface):
 
 
 class MockGmailClient(GmailClientInterface):
-    def __init__(self, mock_emails: list[Email] | None = None, enable_delays: bool = False) -> None:
+    def __init__(
+        self, mock_emails: list[Email] | None = None, enable_delays: bool = False
+    ) -> None:
         self.mock_emails = mock_emails or []
         self.sent_emails: list[dict[str, str]] = []
         self.enable_delays = enable_delays

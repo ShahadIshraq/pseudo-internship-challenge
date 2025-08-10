@@ -1,4 +1,3 @@
-
 from .gmail_client import Email, GmailClientInterface
 
 

@@ -4,6 +4,7 @@ from src.email_processor import EmailProcessor
 from src.gmail_client import Email, MockGmailClient
 from tests.test_data_generator import TestDataGenerator
 
+
 # Do not modify this file
 class TestEmailProcessor:
     def setup_method(self):

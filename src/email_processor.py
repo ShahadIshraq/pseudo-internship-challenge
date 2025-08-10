@@ -15,7 +15,9 @@ class EmailProcessor:
 
         for email in emails:
             subject_upper = email.subject.upper()
-            if all(keyword.upper() in subject_upper for keyword in self.required_keywords):
+            if all(
+                keyword.upper() in subject_upper for keyword in self.required_keywords
+            ):
                 filtered_emails.append(email)
 
         return filtered_emails
@@ -69,7 +71,6 @@ Hiring Team"""
         responses_sent = 0
         # end of non-modifiable block
 
-
         # implement email processing logic.
         emails = self.gmail_client.fetch_emails()
         filtered_emails = self.filter_emails(emails)
@@ -77,15 +78,15 @@ Hiring Team"""
         def send_response(email: Email) -> int:
             name = self.extract_name_from_email(email.body)
             response = self.generate_response(name)
-            if self.gmail_client.send_email(email.sender, "Re: " + email.subject, response):
+            if self.gmail_client.send_email(
+                email.sender, "Re: " + email.subject, response
+            ):
                 return 1
             return 0
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=50) as executor:
             results = list(executor.map(send_response, filtered_emails))
             responses_sent = sum(results)
-
-
 
         # Do not modify this block
         return {

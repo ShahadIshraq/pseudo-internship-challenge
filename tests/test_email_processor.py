@@ -4,7 +4,6 @@ from src.email_processor import EmailProcessor
 from src.gmail_client import Email, MockGmailClient
 from tests.test_data_generator import TestDataGenerator
 
-
 # Do not modify this file
 class TestEmailProcessor:
     def setup_method(self):
@@ -86,7 +85,6 @@ class TestEmailProcessor:
         assert "filtered_emails" in result
         assert "responses_sent" in result
         assert result["total_emails"] == 10
-
 
     def test_email_filtering_accuracy(self):
         valid_emails = []
@@ -176,7 +174,6 @@ class TestEmailProcessor:
         assert result["responses_sent"] == result["filtered_emails"]
         assert (end_time - start_time) < self.performance_threshold
         assert len(mock_client.sent_emails) == result["responses_sent"]
-
 
     def test_performance_with_1000_emails(self):
         test_emails = self.data_generator.generate_test_emails(1000)

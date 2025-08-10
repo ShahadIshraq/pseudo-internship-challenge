@@ -1,8 +1,6 @@
-import re
-import time
-import concurrent.futures
-
 from .gmail_client import Email, GmailClientInterface
+import re
+import concurrent.futures
 
 
 class EmailProcessor:
@@ -14,15 +12,9 @@ class EmailProcessor:
         # implement filtering logic based on required keywords
         filtered_emails = []
 
-        def has_all_required_keywords(email):
+        for email in emails:
             subject_upper = email.subject.upper()
-            return all(keyword.upper() in subject_upper for keyword in self.required_keywords)
-
-        with concurrent.futures.ThreadPoolExecutor(max_workers=50) as executor:
-            results = list(executor.map(has_all_required_keywords, emails))
-
-        for email, is_valid in zip(emails, results):
-            if is_valid:
+            if all(keyword.upper() in subject_upper for keyword in self.required_keywords):
                 filtered_emails.append(email)
 
         return filtered_emails
@@ -41,7 +33,7 @@ class EmailProcessor:
             match = re.search(pattern, email_body)
             if match:
                 return match.group(1).strip()
-            
+
         match = re.search(r"\n\s*([A-Za-z\s]+),\s*\n\s*([A-Za-z\s]+)", email_body)
         if match:
             return match.group(2).strip()
@@ -76,7 +68,7 @@ Hiring Team"""
         responses_sent = 0
         # end of non-modifiable block
 
-        
+
         # implement email processing logic.
         emails = self.gmail_client.fetch_emails()
         filtered_emails = self.filter_emails(emails)
@@ -92,8 +84,8 @@ Hiring Team"""
             results = list(executor.map(send_response, filtered_emails))
             responses_sent = sum(results)
 
-        
-        
+
+
         # Do not modify this block
         return {
             "total_emails": len(emails),

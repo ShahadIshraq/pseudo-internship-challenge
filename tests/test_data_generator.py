@@ -3,7 +3,6 @@ import random
 from src.gmail_client import Email
 
 # Do not modify this file
-
 class TestDataGenerator:
     def __init__(self):
         self.names = [

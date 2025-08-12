@@ -1,6 +1,5 @@
-import random
-
 from src.gmail_client import Email
+import random
 
 # Do not modify this file
 class TestDataGenerator:

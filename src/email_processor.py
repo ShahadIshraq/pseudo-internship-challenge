@@ -1,6 +1,7 @@
-from math import ceil
 import re
 import threading
+from math import ceil
+
 from .gmail_client import Email, GmailClientInterface
 
 
@@ -11,7 +12,7 @@ class EmailProcessor:
 
     def filter_emails(self, emails: list[Email]) -> list[Email]:
         # implement filtering logic based on required keywords
-        
+
         filtered_emails = []
 
         # Check if the email subject contains all required keywords
@@ -37,7 +38,7 @@ class EmailProcessor:
 
         # implement name extraction logic
         name = None
-        
+
         for pattern in patterns:
             match = re.search(pattern, email_body, re.IGNORECASE)
             if match:
@@ -102,7 +103,7 @@ Hiring Team"""
             thread.join()
 
         responses_sent = len(filtered_emails)
-        
+
         # Do not modify this block
         return {
             "total_emails": len(emails),

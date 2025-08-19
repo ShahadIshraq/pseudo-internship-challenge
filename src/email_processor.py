@@ -6,19 +6,23 @@ from .gmail_client import Email, GmailClientInterface
 
 
 class EmailProcessor:
-    def __init__(self, gmail_client: GmailClientInterface):
+    def __init__(self, gmail_client: GmailClientInterface) -> None:
         self.gmail_client = gmail_client
-        self.required_keywords = ["pseudo", "internship", "interest"]
+        self.required_keywords: list[str] = ["pseudo", "internship", "interest"]
 
     def filter_emails(self, emails: list[Email]) -> list[Email]:
         # implement filtering logic based on required keywords
 
-        filtered_emails = []
+        filtered_emails: list[Email] = []
 
         # Check if the email subject contains all required keywords
         for email in emails:
             subject = email.subject.lower()
-            if "pseudo" in subject and "internship" in subject and "interest" in subject:
+            if (
+                "pseudo" in subject
+                and "internship" in subject
+                and "interest" in subject
+            ):
                 filtered_emails.append(email)
 
         return filtered_emails
@@ -67,7 +71,7 @@ We will get back to you within 5-7 business days with an update on your applicat
 Best regards,
 Hiring Team"""
 
-    def process_emails(self) -> dict:
+    def process_emails(self) -> dict[str, int]:
         # Do not modify this block
         emails = []
         filtered_emails = []
@@ -79,7 +83,7 @@ Hiring Team"""
         filtered_emails = self.filter_emails(emails)
 
         # Helper function to process a batch of emails
-        def process_batch(email_batch):
+        def process_batch(email_batch: list[Email]) -> None:
             for email in email_batch:
                 name = self.extract_name_from_email(email.body)
                 response = self.generate_response(name)

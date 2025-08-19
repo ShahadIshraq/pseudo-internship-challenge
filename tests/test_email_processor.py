@@ -101,9 +101,9 @@ class TestEmailProcessor:
 
         filtered_emails = processor.filter_emails(all_emails)
 
-        assert (
-            len(filtered_emails) == 100
-        ), f"Expected 100 valid emails, got {len(filtered_emails)}"
+        assert len(filtered_emails) == 100, (
+            f"Expected 100 valid emails, got {len(filtered_emails)}"
+        )
 
         for email in filtered_emails:
             subject_lower = email.subject.lower()
@@ -137,12 +137,12 @@ class TestEmailProcessor:
             if name is None:
                 no_names_extracted += 1
 
-        assert (
-            names_extracted >= 45
-        ), f"Expected at least 45 names extracted from 50 emails, got {names_extracted}"
-        assert (
-            no_names_extracted >= 20
-        ), f"Expected at least 20 emails without names, got {no_names_extracted}"
+        assert names_extracted >= 45, (
+            f"Expected at least 45 names extracted from 50 emails, got {names_extracted}"
+        )
+        assert no_names_extracted >= 20, (
+            f"Expected at least 20 emails without names, got {no_names_extracted}"
+        )
 
     def test_response_generation_with_extracted_names(self):
         test_emails = []
@@ -188,6 +188,6 @@ class TestEmailProcessor:
         processing_time = end_time - start_time
 
         assert result["total_emails"] == 1000
-        assert (
-            processing_time < self.performance_threshold
-        ), f"Processing took {processing_time:.2f}s, exceeded threshold of {self.performance_threshold}s"
+        assert processing_time < self.performance_threshold, (
+            f"Processing took {processing_time:.2f}s, exceeded threshold of {self.performance_threshold}s"
+        )
